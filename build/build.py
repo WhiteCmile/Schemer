@@ -22,7 +22,7 @@ f"""
 (load "src/schemer.scm")
 (load "{task}/{task}-wrapper.scm")
 
-(compiler-passes ’(
+(compiler-passes '(
   verify-scheme
   remove-complex-opera*
   flatten-set!
