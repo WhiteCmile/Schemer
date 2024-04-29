@@ -6,3 +6,6 @@ a1:
 
 clean:
 	rm test.scm output/*
+
+a2:
+	$(MAKE) test TASK_NAME=a2
