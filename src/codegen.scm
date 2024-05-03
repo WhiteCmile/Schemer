@@ -7,10 +7,8 @@
     (lambda (program)
         (let* ([expose_program (expose-frame-var program)]
                 [flatten_program (flatten-program expose_program)])
-            (begin
-                (printf "~a\n" flatten_program)
             (match flatten_program
-                [(code ,statement* ...) (codegen statement*)])))))
+                [(code ,statement* ...) (codegen statement*)]))))
 
 (define codegen
     (lambda (statements)
