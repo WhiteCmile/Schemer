@@ -718,7 +718,25 @@
      (begin
        (emit '.globl "_scheme_entry")
        (emit-label "_scheme_entry")
+       (emit 'pushq 'rbx)
+       (emit 'pushq 'rbp)
+       (emit 'pushq 'r12)
+       (emit 'pushq 'r13)
+       (emit 'pushq 'r14)
+       (emit 'pushq 'r15)
+       (emit 'movq 'rdi frame-pointer-register)
+       (emit 'movq 'rsi allocation-pointer-register)
+       (emit 'leaq "_scheme_exit(%rip)" return-address-register)
        code code* ...
+       (emit-label "_scheme_exit")
+       (unless (eq? return-value-register 'rax)
+         (emit 'movq return-value-register 'rax))
+       (emit 'popq 'r15)
+       (emit 'popq 'r14)
+       (emit 'popq 'r13)
+       (emit 'popq 'r12)
+       (emit 'popq 'rbp)
+       (emit 'popq 'rbx)
        (emit 'ret))]))
 
 ;;; other helpers for coding the compiler passes
