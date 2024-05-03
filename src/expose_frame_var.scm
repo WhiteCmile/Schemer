@@ -1,3 +1,5 @@
+(load "lib/match.scm")
+
 (define expose-frame-var
     (letrec 
         ([handle_statement 

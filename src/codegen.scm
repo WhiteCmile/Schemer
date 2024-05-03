@@ -20,7 +20,6 @@
             [(set! ,item1 (,binop ,item2 ,item3)) (emit (a1_handle_binop binop) item3 item1)]
             [(set! ,item1 ,item2) (guard (or (int64? item2) (register? item2))) (emit 'movq item2 item1)])))
 
-
 (define codegen
     (lambda (statements)
         (emit-program 
