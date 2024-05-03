@@ -13,6 +13,7 @@
                 (match statement
                     [(begin ,[flatten_statement -> effect*] ... ,[flatten_statement -> tail])
                         (append (apply append effect*) tail)]
+                    [(,triv) `((jump ,triv))]
                     [,x `(,x)])))
         (match program
             [(letrec ([,label* (lambda () ,[flatten_statement -> tail*])] ...) ,[flatten_statement -> body_tail])
