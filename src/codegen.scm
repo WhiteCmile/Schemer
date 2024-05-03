@@ -7,8 +7,10 @@
     (lambda (program)
         (let* ([expose_program (expose-frame-var program)]
                 [flatten_program (flatten-program expose_program)])
+            (begin
+                (printf "~a\n" flatten_program)
             (match flatten_program
-                [(code ,statement* ...) (codegen statement*)]))))
+                [(code ,statement* ...) (codegen statement*)])))))
 
 (define codegen
     (lambda (statements)
@@ -25,7 +27,7 @@
             (lambda (statement)
                 (match statement
                     [,label (guard (label? label)) (emit-label label)]
-                    [(,label) (guard (label? label)) (emit-jump 'jump label)]
+                    [(jump ,triv) (emit-jump 'jump triv)]
                     [(set! ,item1 (,binop ,item2 ,item3)) (emit (codegen_statement binop) item3 item1)]
                     [(set! ,item1 ,item2) (guard (or (int64? item2) (register? item2))) (emit 'movq item2 item1)])))
         (emit-program 
