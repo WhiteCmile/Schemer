@@ -13,7 +13,7 @@
             (lambda (var)
                 (if (register? var)
                     var
-                    (make-disp-opnd 'rbp (frame-var->index var))))]
+                    (make-disp-opnd 'rbp (* 8 (frame-var->index var)))))]
         [handle_triv
             (lambda (triv)
                 (match triv
