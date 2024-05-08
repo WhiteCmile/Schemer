@@ -6,9 +6,8 @@
             (lambda (labels tails)
                 (match labels
                     [(,label . ,rest_labels)
-                        (let ([rest_program (Label rest_labels (cdr tails))]
-                                [instructions (cons label (Tail (car tails) rest_labels (cdr tails)))])
-                            (append instr rest_program))]
+                        (let ([instructions (cons label (Tail (car tails) rest_labels (cdr tails)))])
+                            instructions)]
                     [() '()])))
         ; This function takes a tail, a list of labels, and a list of tails as arguments
         ; Why it takes a list of labels? We need them to know how to generate the jump instructions for better performance
@@ -29,13 +28,16 @@
                                     (append instr rest_program))]
                             [() `((if ,operation (jump ,label_true)) (jump ,label_false))])]
                     [(,triv) (guard (label? triv))
-                        (match labels
-                            [(,label . ,rest_labels)
-                                (if (eq? label triv)
-                                    '()
-                                    `((jump ,triv)))]
-                            [() `(jump ,triv)])]
-                    [(,triv) `((jump ,triv))])))
+                        (let ([rest_program (Label labels tails)]
+                                [instr
+                                    (match labels
+                                        [(,label . ,rest_labels)
+                                            (if (eq? label triv)
+                                                '()
+                                                `((jump ,triv)))]
+                                        [() `((jump ,triv))])])
+                            (append instr rest_program))]
+                    [(,triv) (cons `(jump ,triv) (Label labels tails))])))
         (match program
             [(letrec ([,label* (lambda () ,tail*)] ...) ,body_tail)
                 (cons 'code (Tail body_tail label* tail*))])))
