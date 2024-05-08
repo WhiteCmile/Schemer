@@ -40,9 +40,8 @@
             (lambda (pred tail1 tail2)
                 (match pred
                     [(begin ,effect* ... ,sub_pred)
-                        (let* ([new_tail1 (ins_stats_to_tail effect* tail1)]
-                                [new_tail2 (ins_stats_to_tail effect* tail2)])
-                             (If sub_pred new_tail1 new_tail2))]
+                        (let-values ([(label_list tail_list new_tail) (If sub_pred tail1 tail2)])
+                            (values label_list tail_list `(begin ,effect* ... ,new_tail)))]
                     [(if ,sub_pred ,sub_pred1 ,sub_pred2)
                         (let* ([new_tail1 (ins_pred_to_tail sub_pred1 tail1 tail2)]
                                 [new_tail2 (ins_pred_to_tail sub_pred2 tail1 tail2)])
