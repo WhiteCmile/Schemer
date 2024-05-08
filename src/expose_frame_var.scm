@@ -6,9 +6,15 @@
             (lambda (statement)
                 (match statement
                     [(begin ,[handle_statement -> effect*] ... ,[handle_statement -> tail]) `(begin ,effect* ... ,tail)]
-                    [(set! ,[handle_var -> var1] (,binop ,[handle_triv -> triv1] ,[handle_triv -> triv2])) `(set! ,var1 (,binop ,triv1 ,triv2))]
+                    [(if ,[handle_statement -> stat1] ,[handle_statement -> stat2] ,[handle_statement -> stat3])
+                        `(if ,stat1 ,stat2 ,stat3)]
+                    [(set! ,[handle_var -> var1] (,binop ,[handle_triv -> triv1] ,[handle_triv -> triv2])) 
+                        `(set! ,var1 (,binop ,triv1 ,triv2))]
                     [(set! ,[handle_var -> var] ,[handle_triv -> triv]) `(set! ,var ,triv)]
-                    [(,[handle_triv -> triv]) `(,triv)]))]
+                    [(,relop ,[handle_triv -> triv1] ,[handle_triv -> triv2])
+                        `(,relop ,triv1 ,triv2)]
+                    [(,triv) (guard (triv? triv)) (list (handle_triv triv))]
+                    [,x x]))]
         [handle_var
             (lambda (var)
                 (if (register? var)
