@@ -1,15 +1,5 @@
-(load "lib/helpers.scm")
 (load "lib/match.scm")
-
-(define triv?
-    (lambda (triv)
-        (cond
-            [(int64? triv) #t]
-            [(label? triv) #t]
-            [(uvar? triv) #t]
-            [(register? triv) #t]
-            [(frame-var? triv) #t]
-            [else #f])))
+(load "lib/my_helpers.scm")
 
 (define substitute
     (lambda (uvars Locs x)
