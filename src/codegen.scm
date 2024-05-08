@@ -20,13 +20,13 @@
                     [* 'imulq]
                     [logand 'andq]
                     [logor 'orq]
-                    [src 'sar])))
+                    [sra 'sar])))
         (define codegen_statement
             (lambda (statement)
                 (match statement
                     [,label (guard (label? label)) (emit-label label)]
-                    [(jump ,triv) (emit-jump 'jump triv)]
-                    [(set! ,item1 (,binop ,item2 ,item3)) (emit (codegen_statement binop) item3 item1)]
-                    [(set! ,item1 ,item2) (guard (or (int64? item2) (register? item2))) (emit 'movq item2 item1)])))
+                    [(jump ,triv) (emit-jump 'jmp triv)]
+                    [(set! ,item1 (,binop ,item2 ,item3)) (emit (codegen_binop binop) item3 item1)]
+                    [(set! ,item1 ,item2) (emit 'movq item2 item1)])))
         (emit-program 
             (for-each codegen_statement statements))))
