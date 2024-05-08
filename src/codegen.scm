@@ -39,8 +39,8 @@
                 (match statement
                     [,label (guard (label? label)) (emit-label label)]
                     [(jump ,triv) (emit-jump 'jmp triv)]
-                    [(if (not (,relop ,item1 ,item2)) (jump ,triv)) (emit 'cmpq item1 item2) (emit-jump (codegen-relop relop #f) triv)]
-                    [(if (,relop ,item1 ,item2) (jump ,triv)) (emit 'cmpq item1 item2) (emit-jump (codegen-relop relop #t) triv)]
+                    [(if (not (,relop ,item1 ,item2)) (jump ,triv)) (emit 'cmpq item2 item1) (emit-jump (codegen-relop relop #t) triv)]
+                    [(if (,relop ,item1 ,item2) (jump ,triv)) (emit 'cmpq item2 item1) (emit-jump (codegen-relop relop #f) triv)]
                     [(set! ,item1 (,binop ,item2 ,item3)) (emit (codegen_binop binop) item3 item1)]
                     [(set! ,item1 ,item2) (guard (label? item2)) (emit 'leaq item2 item1)]
                     [(set! ,item1 ,item2) (emit 'movq item2 item1)])))
