@@ -71,6 +71,7 @@
                                     [tail1 (ins_stat_to_tail effect1 cur_tail)]
                                     [tail2 (ins_stat_to_tail effect2 cur_tail)]) 
                                 (If pred tail1 tail2))]
+                        [(nop) (Effect (cdr effects) tail)]
                         [,effect 
                             (let-values ([(label_list tail_list tail) (Effect (cdr effects) tail)])
                                 (values label_list tail_list (ins_stat_to_tail effect tail)))]))))
