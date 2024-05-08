@@ -45,6 +45,15 @@
                     (match triv
                         [,x (guard (or (int64? x) (label? x))) x]
                         [,x ((Var_with_2lists uvars Locs) x)]))))
+        ; Label is used to reset unique-name-count
+        (define Label
+            (lambda (label)
+                (let ([num (string->number (extract-suffix label))])
+                    (if (> num (unique-name-count))
+                        (begin 
+                            (unique-name-count num)
+                            label)
+                        label))))
         (match program
-            [(letrec ([,label* (lambda () ,[Body -> body*])] ...) ,[Body -> main_body])
+            [(letrec ([,[Label -> label*] (lambda () ,[Body -> body*])] ...) ,[Body -> main_body])
                 `(letrec ([,label* (lambda () ,body*)] ...) ,main_body)])))
