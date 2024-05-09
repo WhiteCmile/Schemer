@@ -136,7 +136,9 @@
                             [(new_live_set2 new_conf_graph2) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 pred2)])
                             (venture_pred new_live_set1 new_live_set2 new_conf_graph1 new_conf_graph2 sub_pred))]
                     [(,relop ,triv1 ,triv2)
-                        (values (union live_set1 live_set2) (union_conflict_graph conf_graph1 conf_graph2))]
+                        (values 
+                            (append_live_set (union live_set1 live_set2) (list triv1 triv2))
+                            (union_conflict_graph conf_graph1 conf_graph2))]
                     [(true) (values live_set1 conf_graph1)]
                     [(false) (values live_set2 conf_graph2)])))
         (define venture_effects
