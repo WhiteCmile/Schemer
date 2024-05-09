@@ -118,8 +118,8 @@
                             ((venture_effects live_set sub_graph) effect*))]
                     [(if ,pred ,tail1 ,tail2)
                         (let-values
-                            ([(live_set1 sub_graph1) (venture_tail conflict_graph tail1)]
-                            [(live_set2 sub_graph2) (venture_tail conflict_graph tail2)])
+                            ([(live_set1 sub_graph1) (venture_tail conf_graph tail1)]
+                            [(live_set2 sub_graph2) (venture_tail conf_graph tail2)])
                             (venture_pred live_set1 live_set2 sub_graph1 sub_graph2 pred))]
                     [(,triv ,Loc* ...)
                         (values (init_live_set (cons triv Loc*)) conf_graph)])))
@@ -132,8 +132,8 @@
                             ((venture_effects live_set sub_graph) effect*))]
                     [(if ,sub_pred ,pred1 ,pred2)
                         (let-values 
-                            ([(new_live_set1 new_conf_graph_1) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 pred1)]
-                            [(new_live_set2 new_conf_graph_2) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 pred2)])
+                            ([(new_live_set1 new_conf_graph1) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 pred1)]
+                            [(new_live_set2 new_conf_graph2) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 pred2)])
                             (venture_pred new_live_set1 new_live_set2 new_conf_graph1 new_conf_graph2 sub_pred))]
                     [(,relop ,triv1 ,triv2)
                         (values (union live_set1 live_set2) (union_conflict_graph conf_graph1 conf_graph2))]
