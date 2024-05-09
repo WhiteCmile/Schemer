@@ -40,30 +40,45 @@
 
 ; Append several elements to a live set
 (define append_live_set
-    (case-lambda
-        [(live_set var1 var2)
-            (append_live_set (append_live_set var2) var1)]
-        [(live_set var)
-            (if (valid_in_live_set? var)
-                (union `(,var) live_set)
-                live_set)]))
+    (lambda (live_set triv_set)
+        (match triv_set
+            [() live_set]
+            [(,triv . ,[new_live_set])
+                (if (valid_in_live_set? triv)
+                    (union `(,triv) new_live_set)
+                    new_live_set)])))
 
+; Append var's conflict list in conflict graph with a live set
+(define append_conflict_list
+    (lambda (live_set conf_graph var)
+        (match conf_graph
+            [() '()]
+            [((,var1 . ,conf_list) . ,sub_graph)
+                (if (eq? var var1)
+                    (cons (cons var (union conf_list live_set))
+                        sub_graph)
+                    (cons (car conf_graph)
+                        (append_conflict_list live_set sub_graph var)))])))
+                    
 ; Append a conflict graph with a list of items that conflicts with this var
+; We need to make a mutual confliction
 (define append_conflict_graph
     (lambda (live_set conf_graph var)
-        (if (uvar? var)
-            (let ([item (car (car conf_graph))]
-                    [conf_list (cdr (car conf_graph))]
-                    [live_set (difference live_set `(,var))])
-                (if (eq? item var)
-                    (cons 
-                        (cons item 
-                            (union conf_list live_set))
-                        (cdr conf_graph))
-                    (cons 
-                        (car conf_graph)
-                        (append_conflict_graph live_set (cdr conf_graph) var))))
-            conf_graph)))
+        (let 
+            ([conf_graph 
+                (if (uvar? var) 
+                    (append_conflict_list live_set conf_graph var)
+                    conf_graph)])
+            (letrec 
+                ([another_dir
+                    (lambda (live_set conf_graph var)
+                        (match live_set
+                            [() conf_graph]
+                            [(,triv . ,[new_conf_graph])
+                                (if (uvar? triv)
+                                    (append_conflict_list `(,var) new_conf_graph triv)
+                                    new_conf_graph)]))])
+                (another_dir live_set conf_graph var)))))
 
 ; Ignore assignment if the variable is not in the live set
 ; This is an optimization that has not being implemented yet
@@ -77,11 +92,13 @@
         [(live_set conf_graph var triv1 triv2)
             (if (ignore_assignment? var live_set)
                 (values live_set conf_graph)
-                (values (append_live_set live_set triv2) (append_conflict_graph live_set conf_graph var)))]
+                (let ([live_set (difference live_set `(,var))])
+                    (values (append_live_set live_set `(,var ,triv2)) (append_conflict_graph live_set conf_graph var))))]
         [(live_set conf_graph var triv)
             (if (ignore_assignment? var live_set)
                 (values live_set conf_graph)
-                (values (append_live_set (difference live_set `(,var)) triv) (append_conflict_graph live_set conf_graph var)))]))
+                (let ([live_set (difference live_set `(,var))])
+                    (values (append_live_set live_set `(,triv)) (append_conflict_graph live_set conf_graph var))))]))
 
 (define uncover-register-conflict
     (lambda (program)
