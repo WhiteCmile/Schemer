@@ -84,9 +84,10 @@
 ; This is an optimization
 (define ignore_assignment?
     (lambda (var live_set)
-        (if (null? (intersection `(,var) live_set))
-            #t
-            #f)))
+        (cond 
+            [(frame-var? var) #f]
+            [(null? (intersection `(,var) live_set)) #t]
+            [else #f])))
 
 ; Maintain the live set and conflict graph in an assignment
 (define handle_assignment
