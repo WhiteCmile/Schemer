@@ -46,6 +46,7 @@
                             (values '() `(set! ,var (,binop ,triv2 ,triv1)))]
                         [else (gen_valid_mov var binop triv1 triv2)])
                     (cond
+                        [(eq? '* binop) (gen_valid_mov var binop triv1 triv2)]
                         [(and
                             (eq? triv1 var)
                             (or (can_be_reg? triv2) (int64? triv2)))
