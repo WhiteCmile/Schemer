@@ -212,7 +212,7 @@
                 `(letrec ([,label* (lambda () ,body*)] ...) ,body)]
             [(locals ,uvar* ,tail)
                 (let-values
-                    ([(live_set conf_frame_graph tail) ((uncover_conflict frame-var? uvar* tail))])
+                    ([(live_set conf_frame_graph tail) (uncover_conflict frame-var? uvar* tail)])
                     `(locals ,uvar*
                         (frame-conflict 
                             ,(sort (lambda (a b) (< (length a) (length b))) conf_frame_graph) ,tail)))])))
