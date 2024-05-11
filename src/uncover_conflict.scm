@@ -160,7 +160,7 @@
                                     `(if ,sub_pred ,pred1 ,pred2))))]
                     [(,relop ,triv1 ,triv2)
                         (values 
-                            (append_live_set (union live_set1 live_set2) (list triv1 triv2))
+                            (append_live_set (union live_set1 live_set2) (list triv1 triv2) what)
                             (union_conflict_graph conf_graph1 conf_graph2)
                             pred)]
                     [(true) (values live_set1 conf_graph1 pred)]
@@ -222,7 +222,7 @@
         (match program
             [(letrec ([,label* (lambda () ,[body*])] ...) ,[body])
                 `(letrec ([,label* (lambda () ,body*)] ...) ,body)]
-            [(locate ,completed* ...) program]
+            [(locate ,completed* ...) `(locate ,completed* ...)]
             [(locals ,uvar*
                 (ulocals ,uloc*
                     (locate ,bind*
