@@ -10,7 +10,7 @@
         (match instruction
             [(,triv ,Loc* ...)
                 (if (can_be_reg? triv)
-                    (values '() instrucion)
+                    (values '() instruction)
                     (let ([uloc (unique-name 'uloc)])
                         (values (list uloc)
                                 `(begin (set! ,uloc ,triv) (,uloc ,Loc* ...)))))])))
@@ -55,7 +55,15 @@
                             (can_swap? binop)
                             (or (can_be_reg? triv1) (int64? triv1)))
                             (values '() `(set! ,var (,binop ,triv2 ,triv1)))]
-                        [else (gen_valid_mov var binop triv1 triv2)]))])))
+                        [else (gen_valid_mov var binop triv1 triv2)]))]
+            [(set! ,var ,triv)
+                (cond
+                    [(can_be_reg? var) (values '() instruction)]
+                    [(or (int64? triv) (can_be_reg? triv)) (values '() instruction)]
+                    [else
+                        (let ([uloc (unique-name 'uloc)])
+                            (values (list uloc)
+                                    `(begin (set! ,uloc ,triv) (set! ,var ,uloc))))])])))
 
 (define select-instructions
     (lambda (program)
