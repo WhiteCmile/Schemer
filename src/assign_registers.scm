@@ -19,7 +19,7 @@
 (define find_avail_reg
     (lambda (var conf_list binded_vars bind_list)
         (let*
-            ([conf_list (intersection binded_vars (replace_uvars conf_list bind_list))]
+            ([conf_list (replace_uvars conf_list bind_list)]
             [reg_list (difference registers conf_list)])
             (if (null? reg_list)
                 '()

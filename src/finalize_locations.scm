@@ -17,6 +17,7 @@
                         '(nop)
                         `(set! ,var ,triv))]
                 [(,triv) (guard (triv? triv)) `(,(replace triv))]
+                [,uvar (guard (uvar? uvar)) (replace uvar)]
                 [,x x]))))
 
 (define finalize-locations
