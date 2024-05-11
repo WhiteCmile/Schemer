@@ -103,7 +103,7 @@
 ; Unlike the previous version, we take an optimization here
 ; For those assignment that LHS is not in the live set, we can discard the assignment
 ; So it may change the structure
-(define uncover-conflict
+(define uncover_conflict
     ; Modified in a5
     ; what is a function that checks if a non-variable can be in a live set
     ; For instance, if what = register?, then this uncover-conflict is used to uncover register conflicts.
