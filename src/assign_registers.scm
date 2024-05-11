@@ -26,13 +26,12 @@
                 (list var (car reg_list))))))
 
 ; Allocate registers to variables
-; If can't find a register for a variable, then throw an error
 (define register_allocator
     (lambda (conf_graph)
         (define bind_var
             (lambda (sorted_graph)
                 (match sorted_graph
-                    [() '()]
+                    [() (values '() '())]
                     [((,var . ,conf_list) . ,sub_graph)
                         (unless (set? conf_list)
                             (format-error who "conf_list ~a is not a set" conf_list))
@@ -43,7 +42,7 @@
                                 (if (null? bind)
                                     (values binded_vars bind_list)
                                     (values (cons var binded_vars) (cons bind bind_list)))))])))
-        (let*
+        (let
             ([sorted_graph (sort (lambda (a b) (< (length a) (length b))) conf_graph)])
             (bind_var sorted_graph))))
 
