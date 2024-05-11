@@ -67,5 +67,15 @@
                         (if key_value
                             (cadr key_value)
                             var)
-                    var))
-            conf_list))))
+                    var)))
+            conf_list)))
+
+; find the least non-negtive number in an ordered list
+(define find_least_no_neg
+    (lambda (lst)
+        (let loop ([i 0] [lst lst])
+            (cond
+                [(null? lst) i]
+                [(= (car lst) i) (loop (+ i 1) (cdr lst))]
+                [(= (car lst) (- i 1)) (loop i (cdr lst))]
+                [else i]))))
