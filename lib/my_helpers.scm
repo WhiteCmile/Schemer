@@ -70,8 +70,8 @@
                     var)))
             conf_list)))
 
-; find the least non-negtive number in an ordered list
-(define find_least_no_neg
+; find the smallest non-negtive number in an ordered list
+(define find_smallest_no_neg
     (lambda (lst)
         (let loop ([i 0] [lst lst])
             (cond
