@@ -106,119 +106,130 @@
 (define uncover-conflict
     ; Modified in a5
     ; what is a function that checks if a non-variable can be in a live set
-    ; For instance, if what = register? and conflict_form = 'register-rconflict, then this uncover-conflict is used to uncover register conflicts.
-    (lambda (what conflict_form)
-        (lambda (program)
-            (define Body
-                (lambda (body)
-                    (match body
-                        [(locals ,uvar* ,tail)
-                            (let-values 
-                                ([(live_set conf_graph tail) (venture_tail (init_conflict_graph uvar*) tail)])
-                                `(locals ,uvar* (,conflict_form ,conf_graph ,tail)))])))
-            (define venture_tail
-                (lambda (conf_graph tail)
-                    (match tail
-                        [(begin ,effect* ... ,sub_tail)
+    ; For instance, if what = register?, then this uncover-conflict is used to uncover register conflicts.
+    (lambda (what uvar* tail)
+        (define venture_tail
+            (lambda (conf_graph tail)
+                (match tail
+                    [(begin ,effect* ... ,sub_tail)
+                        (let-values
+                            ([(live_set sub_graph new_tail) (venture_tail conf_graph sub_tail)])
                             (let-values
-                                ([(live_set sub_graph new_tail) (venture_tail conf_graph sub_tail)])
-                                (let-values
-                                    ([(live_set sub_graph effects) ((venture_effects live_set sub_graph) effect*)])
-                                    (values
-                                        live_set
-                                        sub_graph
-                                        (make-begin (append effects `(,new_tail))))))]
-                        [(if ,pred ,tail1 ,tail2)
+                                ([(live_set sub_graph effects) ((venture_effects live_set sub_graph) effect*)])
+                                (values
+                                    live_set
+                                    sub_graph
+                                    (make-begin (append effects `(,new_tail))))))]
+                    [(if ,pred ,tail1 ,tail2)
+                        (let-values
+                            ([(live_set1 sub_graph1 tail1) (venture_tail conf_graph tail1)]
+                            [(live_set2 sub_graph2 tail2) (venture_tail conf_graph tail2)])
                             (let-values
-                                ([(live_set1 sub_graph1 tail1) (venture_tail conf_graph tail1)]
-                                [(live_set2 sub_graph2 tail2) (venture_tail conf_graph tail2)])
-                                (let-values
-                                    ([(live_set sub_graph pred) (venture_pred live_set1 live_set2 sub_graph1 sub_graph2 pred)])
-                                    (values
-                                        live_set
-                                        sub_graph
-                                        `(if ,pred ,tail1 ,tail2))))]
-                        [(,triv ,Loc* ...)
+                                ([(live_set sub_graph pred) (venture_pred live_set1 live_set2 sub_graph1 sub_graph2 pred)])
+                                (values
+                                    live_set
+                                    sub_graph
+                                    `(if ,pred ,tail1 ,tail2))))]
+                    [(,triv ,Loc* ...)
+                        (values 
+                            (init_live_set (cons triv Loc*) what) 
+                            conf_graph
+                            tail)])))
+        (define venture_pred
+            (lambda (live_set1 live_set2 conf_graph1 conf_graph2 pred)
+                (match pred
+                    [(begin ,effect* ... ,sub_pred)
+                        (let-values 
+                            ([(live_set sub_graph sub_pred) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 sub_pred)])
+                            (let-values
+                                ([(live_set sub_graph effects) ((venture_effects live_set sub_graph) effect*)])
+                                (values
+                                    live_set
+                                    sub_graph
+                                    (make-begin (append effects `(,sub_pred))))))]
+                    [(if ,sub_pred ,pred1 ,pred2)
+                        (let-values 
+                            ([(new_live_set1 new_conf_graph1 pred1) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 pred1)]
+                            [(new_live_set2 new_conf_graph2 pred2) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 pred2)])
+                            (let-values
+                                ([(live_set sub_graph sub_pred) 
+                                    (venture_pred new_live_set1 new_live_set2 new_conf_graph1 new_conf_graph2 sub_pred)])
+                                (values
+                                    live_set
+                                    sub_graph
+                                    `(if ,sub_pred ,pred1 ,pred2))))]
+                    [(,relop ,triv1 ,triv2)
+                        (values 
+                            (append_live_set (union live_set1 live_set2) (list triv1 triv2))
+                            (union_conflict_graph conf_graph1 conf_graph2)
+                            pred)]
+                    [(true) (values live_set1 conf_graph1 pred)]
+                    [(false) (values live_set2 conf_graph2 pred)])))
+        (define venture_effect
+            (lambda (live_set conf_graph effect)
+                (match effect
+                    [(begin ,effect* ...)
+                        (let-values 
+                            ([(live_set sub_graph new_effects) ((venture_effects live_set conf_graph) effect*)])
                             (values 
-                                (init_live_set (cons triv Loc*) what) 
-                                conf_graph
-                                tail)])))
-            (define venture_pred
-                (lambda (live_set1 live_set2 conf_graph1 conf_graph2 pred)
-                    (match pred
-                        [(begin ,effect* ... ,sub_pred)
-                            (let-values 
-                                ([(live_set sub_graph sub_pred) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 sub_pred)])
-                                (let-values
-                                    ([(live_set sub_graph effects) ((venture_effects live_set sub_graph) effect*)])
-                                    (values
-                                        live_set
-                                        sub_graph
-                                        (make-begin (append effects `(,sub_pred))))))]
-                        [(if ,sub_pred ,pred1 ,pred2)
-                            (let-values 
-                                ([(new_live_set1 new_conf_graph1 pred1) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 pred1)]
-                                [(new_live_set2 new_conf_graph2 pred2) (venture_pred live_set1 live_set2 conf_graph1 conf_graph2 pred2)])
-                                (let-values
-                                    ([(live_set sub_graph sub_pred) 
-                                        (venture_pred new_live_set1 new_live_set2 new_conf_graph1 new_conf_graph2 sub_pred)])
-                                    (values
-                                        live_set
-                                        sub_graph
-                                        `(if ,sub_pred ,pred1 ,pred2))))]
-                        [(,relop ,triv1 ,triv2)
-                            (values 
-                                (append_live_set (union live_set1 live_set2) (list triv1 triv2))
-                                (union_conflict_graph conf_graph1 conf_graph2)
-                                pred)]
-                        [(true) (values live_set1 conf_graph1 pred)]
-                        [(false) (values live_set2 conf_graph2 pred)])))
-            (define venture_effect
-                (lambda (live_set conf_graph effect)
-                    (match effect
-                        [(begin ,effect* ...)
-                            (let-values 
-                                ([(live_set sub_graph new_effects) ((venture_effects live_set conf_graph) effect*)])
-                                (values 
-                                    live_set 
-                                    sub_graph 
-                                    (make-begin new_effects)))]
-                        [(if ,pred ,effect1 ,effect2)
+                                live_set 
+                                sub_graph 
+                                (make-begin new_effects)))]
+                    [(if ,pred ,effect1 ,effect2)
+                        (let-values
+                            ([(live_set1 sub_graph1 effect1) (venture_effect live_set conf_graph effect1)]
+                            [(live_set2 sub_graph2 effect2) (venture_effect live_set conf_graph effect2)])
                             (let-values
-                                ([(live_set1 sub_graph1 effect1) (venture_effect live_set conf_graph effect1)]
-                                [(live_set2 sub_graph2 effect2) (venture_effect live_set conf_graph effect2)])
-                                (let-values
-                                    ([(live_set sub_graph pred) 
-                                        (venture_pred live_set1 live_set2 sub_graph1 sub_graph2 pred)])
-                                    (values
-                                        live_set
-                                        sub_graph
-                                        `(if ,pred ,effect1 ,effect2))))]
-                        [(set! ,var (,binop ,triv1 ,triv2))
-                            (handle_assignment live_set conf_graph effect var `(,triv1 ,triv2) what)]
-                        [(set! ,var ,triv)
-                            (handle_assignment live_set conf_graph effect var `(,triv) what)]
-                        [,x (values live_set conf_graph effect)])))
-            (define venture_effects
-                (lambda (live_set conf_graph)
-                    (lambda (effects)
-                        (match effects
-                            [() (values live_set conf_graph '())]
-                            [(,effect . ,[(venture_effects live_set conf_graph) -> live_set conf_graph last_effects])
-                                (let-values 
-                                    ([(live_set sub_graph effect) (venture_effect live_set conf_graph effect)])
-                                    (values
-                                        live_set
-                                        sub_graph
-                                        (cons effect last_effects)))]))))
-            (match program
-                [(letrec ([,label* (lambda () ,[Body -> let_body*])] ...) ,[Body -> body])
-                    `(letrec ([,label* (lambda () ,let_body*)] ...) ,body)]))))
+                                ([(live_set sub_graph pred) 
+                                    (venture_pred live_set1 live_set2 sub_graph1 sub_graph2 pred)])
+                                (values
+                                    live_set
+                                    sub_graph
+                                    `(if ,pred ,effect1 ,effect2))))]
+                    [(set! ,var (,binop ,triv1 ,triv2))
+                        (handle_assignment live_set conf_graph effect var `(,triv1 ,triv2) what)]
+                    [(set! ,var ,triv)
+                        (handle_assignment live_set conf_graph effect var `(,triv) what)]
+                    [,x (values live_set conf_graph effect)])))
+        (define venture_effects
+            (lambda (live_set conf_graph)
+                (lambda (effects)
+                    (match effects
+                        [() (values live_set conf_graph '())]
+                        [(,effect . ,[(venture_effects live_set conf_graph) -> live_set conf_graph last_effects])
+                            (let-values 
+                                ([(live_set sub_graph effect) (venture_effect live_set conf_graph effect)])
+                                (values
+                                    live_set
+                                    sub_graph
+                                    (cons effect last_effects)))]))))
+        (venture_tail (init_conflict_graph uvar*) tail)))
 
 (define uncover-frame-conflict
     (lambda (program)
-        ((uncover-conflict frame-var? 'frame-conflict) program)))
+        (match program
+            [(letrec ([,label* (lambda () ,[body*])] ...) ,[body])
+                `(letrec ([,label* (lambda () ,body*)] ...) ,body)]
+            [(locals ,uvar* ,tail)
+                (let-values
+                    ([(live_set conf_frame_graph tail) ((uncover_conflict frame-var? uvar* tail))])
+                    `(locals ,uvar*
+                        (frame-conflict ,conf_frame_graph ,tail)))])))
 
 (define uncover-register-conflict
     (lambda (program)
-        ((uncover-conflict register? 'register-rconflict) program)))
+        (match program
+            [(letrec ([,label* (lambda () ,[body*])] ...) ,[body])
+                `(letrec ([,label* (lambda () ,body*)] ...) ,body)]
+            [(locate ,completed* ...) program]
+            [(locals ,uvar*
+                (ulocals ,uloc*
+                    (locate ,bind*
+                        (frame-conflict ,conf_frame_graph ,tail))))
+                (let-values
+                    ([(live_set conf_reg_graph tail) ((uncover_conflict register? uvar* tail))])
+                    `(locals ,uvar*
+                        (ulocals ,uloc*
+                            (locate ,bind*
+                                (frame-conflict ,conf_frame_graph
+                                    (register-conflict ,conf_reg_graph ,tail))))))])))
