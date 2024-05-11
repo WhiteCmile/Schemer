@@ -22,26 +22,37 @@ f"""
 (load "src/schemer.scm")
 (load "{task}/{task}-wrapper.scm")
 
+(define-who everybody-home?
+    (define all-home?
+        (lambda (body)
+            (match body
+                [(locals (,local* ...)
+                    (ulocals (,ulocals* ...)
+                        (spills (,spill* ...)
+                            (locate (,home* ...)
+                                (frame-conflict, ct ,tail))))) #f]
+                [(locate (,home* ...) ,tail) #t]
+                [,x (error who "invalid Body ~s" x)])))
+    (lambda (x)
+        (match x
+            [(letrec ([,label* (lambda () ,body*)] ...) ,body)
+                (andmap all-home? `(,body ,body* ...))]
+            [,x (error who "invalid Program ~s" x)])))
+
 (compiler-passes '(
-  verify-uil
-  remove-complex-opera*
-  flatten-set!
-  impose-calling-conventions
-  expose-allocation-pointer
+  verify-scheme
   uncover-frame-conflict
-  pre-assign-frame
-  assign-new-frame
+  introduce-allocation-forms
   (iterate
-    finalize-frame-locations
     select-instructions
     uncover-register-conflict
     assign-registers
     (break when everybody-home?)
-    assign-frame)
+    assign-frame
+    finalize-frame-locations)
   discard-call-live
   finalize-locations
   expose-frame-var
-  expose-memory-operands
   expose-basic-blocks
   flatten-program
   generate-x86-64
