@@ -1,24 +1,20 @@
 (load "lib/match.scm")
 (load "lib/helpers.scm")
-(load "src/expose_frame_var.scm")
-(load "src/flatten_program.scm")
-(load "src/finalize_locations.scm")
-(load "src/expose_basic_blocks.scm")
-(load "src/uncover_register_conflict.scm")
+(load "src/uncover_conflict.scm")
+(load "src/introduce_allocation_forms.scm")
+(load "src/select_instructions.scm")
 (load "src/assign_registers.scm")
+(load "src/assign_frame.scm")
+(load "src/finalize_locations.scm")
 (load "src/discard_call_live.scm")
+(load "src/expose_frame_var.scm")
+(load "src/expose_basic_blocks.scm")
+(load "src/flatten_program.scm")
 
 (define generate-x86-64
     (lambda (program)
-        (let* ([program_with_graph (uncover-register-conflict program)]
-                [assigned_program (assign-registers program_with_graph)]
-                [discarded_program (discard-call-live assigned_program)]
-                [finalize_program (finalize-locations discarded_program)]
-                [expose_frame_program (expose-frame-var finalize_program)]
-                [expose_blocks_program (expose-basic-blocks expose_frame_program)]
-                [flatten_program (flatten-program expose_blocks_program)])
-            (match flatten_program
-                [(code ,statement* ...) (codegen statement*)]))))
+        (match program
+            [(code ,statement* ...) (codegen statement*)])))
 
 (define codegen
     (lambda (statements)
