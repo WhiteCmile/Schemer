@@ -12,6 +12,7 @@
                         (values (cons conf_list graph_spilled) conf_graph)
                         (values graph_spilled (cons conf_list conf_graph)))]))))
 
+; Got a frame-var that does not conflict with any other frame-var in conf_list
 (define allocate_frame 
     (lambda (bindings conf_list)
         (let* ([conf_list (replace_uvars conf_list bindings)]
