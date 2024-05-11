@@ -61,7 +61,7 @@
             (lambda (body)
                 (match body
                     [(locals ,uvar* 
-                        (register-rconflict ,conf_graph ,tail))
+                        (register-conflict ,conf_graph ,tail))
                         `(locate ,(register_allocator conf_graph) ,tail)])))
         (match program
             [(letrec ([,label* (lambda () ,[Body -> body*])] ...) ,[Body -> body])
