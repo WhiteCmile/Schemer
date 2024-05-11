@@ -72,8 +72,8 @@
             (lambda (var)
                 (if (uvar? var)
                     ((substitute_with_value bind_list) var)
-                    var)))
-            conf_list))
+                    var))
+            conf_list)))
 
 ; find the smallest non-negtive number in an ordered list
 (define find_smallest_no_neg
