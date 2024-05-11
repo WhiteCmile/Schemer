@@ -215,8 +215,7 @@
                     ([(live_set conf_frame_graph tail) ((uncover_conflict frame-var? uvar* tail))])
                     `(locals ,uvar*
                         (frame-conflict 
-                            ,(sort (lambda (a b) (< (length a) (length b)) conf_frame_graph) 
-                            ,tail)))])))
+                            ,(sort (lambda (a b) (< (length a) (length b))) conf_frame_graph) ,tail)))])))
 
 (define uncover-register-conflict
     (lambda (program)
