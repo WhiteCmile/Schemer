@@ -55,6 +55,15 @@
             [(eq? item (car set)) #t]
             [else (item_in_set? item (cdr set))])))
 
+; Given a triv, if it's a key in bindings, return the value, otherwise return the triv
+(define substitute_with_value
+    (lambda (bindings)
+        (lambda (triv)
+            (let ([kv_pair (assoc triv bindings)])
+                (if kv_pair
+                    (cadr kv_pair)
+                    triv)))))
+
 ; bind_list: list of (key, value)s
 ; Replace every key with value in the conflict list if can
 (define replace_uvars
@@ -62,13 +71,9 @@
         (map
             (lambda (var)
                 (if (uvar? var)
-                    (let 
-                        ([key_value (assoc var bind_list)])
-                        (if key_value
-                            (cadr key_value)
-                            var)
+                    ((substitute_with_value bind_list) var)
                     var)))
-            conf_list)))
+            conf_list))
 
 ; find the smallest non-negtive number in an ordered list
 (define find_smallest_no_neg
