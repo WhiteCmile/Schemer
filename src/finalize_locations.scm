@@ -57,3 +57,35 @@
         (match program
             [(letrec ([,[Label -> label*] (lambda () ,[Body -> body*])] ...) ,[Body -> main_body])
                 `(letrec ([,label* (lambda () ,body*)] ...) ,main_body)])))
+
+(define finalize-frame-locations
+    (lambda (program)
+        (define Stat
+            (lambda (bindings)
+                (define replace (substitute_with_value bindings))
+                (lambda (statement)
+                    (match statement
+                        [(begin ,[statements*] ...) `(begin ,statements* ...)]
+                        [(if ,[pred] ,[stat1] ,[stat2]) `(if ,pred ,stat1 ,stat2)]
+                        [(,relop ,triv1 ,triv2) (guard (relop? relop))
+                            `(,relop ,(replace triv1) ,(replace triv2))]
+                        [(set! ,[var] (,binop ,[triv1] ,[triv2])) 
+                            `(set! ,var (,binop ,triv1 ,triv2))]
+                        [(set! ,[var] ,[triv])
+                            (if (eq? var triv)
+                                '(nop)
+                                `(set! ,var ,triv))]
+                        [(,triv) (guard (triv? triv)) (replace triv)]
+                        [,x x]))))
+        (match program
+            [(letrec ([,label* (lambda () ,[body*])] ...) ,[body])
+                `(letrec ([,label* (lambda () ,body*)] ...) ,body)]
+            [(locals ,uvar*
+                (ulocals ,uloc*
+                    (locate ,binding*
+                        (frame-conflict ,graph ,[(Stat binding*) -> tail]))))
+                `(locals ,uvar*
+                    (ulocals ,uloc*
+                        (locate ,binding*
+                            (frame-conflict ,graph ,tail))))]
+            [,x x])))
