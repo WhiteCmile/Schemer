@@ -1,5 +1,6 @@
 (load "lib/match.scm")
 (load "lib/helpers.scm")
+(load "lib/my_helpers.scm")
 
 ; Remove a variable from the graph
 ; More specifically, remove it from the list, and remove it from the conflict lists of other variables
@@ -18,25 +19,11 @@
 (define find_avail_reg
     (lambda (var conf_list binded_vars bind_list)
         (let*
-            ([conf_list (intersection binded_vars (replace_with_reg conf_list bind_list))]
+            ([conf_list (intersection binded_vars (replace_uvars conf_list bind_list))]
             [reg_list (difference registers conf_list)])
             (if (null? reg_list)
                 '()
                 (list var (car reg_list))))))
-
-; Replace every uvar with register in the conflict list
-(define replace_with_reg
-    (lambda (conf_list bind_list)
-        (map
-            (lambda (var)
-                (if (uvar? var)
-                    (let 
-                        ([var_reg_pair (assoc var bind_list)])
-                        (if var_reg_pair
-                            (cadr var_reg_pair)
-                            (format-error who "can't find register for variable ~a in bind_list ~a" var bind_list)))
-                    var))
-            conf_list)))
 
 ; Allocate registers to variables
 ; If can't find a register for a variable, then throw an error
