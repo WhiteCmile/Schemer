@@ -46,3 +46,26 @@
     (lambda (operand)
         (or (register? operand)
             (uvar? operand))))
+
+; Return whether an item is in the set
+(define item_in_set?
+    (lambda (item set)
+        (cond
+            [(null? set) #f]
+            [(eq? item (car set)) #t]
+            [else (item_in_set? item (cdr set))])))
+
+; bind_list: list of (key, value)s
+; Replace every key with value in the conflict list if can
+(define replace_uvars
+    (lambda (conf_list bind_list)
+        (map
+            (lambda (var)
+                (if (uvar? var)
+                    (let 
+                        ([key_value (assoc var bind_list)])
+                        (if key_value
+                            (cadr key_value)
+                            var)
+                    var))
+            conf_list))))
