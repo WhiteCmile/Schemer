@@ -18,6 +18,7 @@
 ; Return a empty binding if no register is available
 (define find_avail_reg
     (lambda (var conf_list binded_vars bind_list)
+        ; (printf "find_avail_reg: ~a ~a ~a ~a\n" var conf_list binded_vars bind_list)
         (let*
             ([conf_list (replace_uvars conf_list bind_list)]
             [reg_list (difference registers conf_list)])
@@ -43,7 +44,20 @@
                                     (values binded_vars bind_list)
                                     (values (cons var binded_vars) (cons bind bind_list)))))])))
         (let
-            ([sorted_graph (sort (lambda (a b) (< (length a) (length b))) conf_graph)])
+            ([sorted_graph 
+                (sort 
+                    (lambda (a b) 
+                        (let ([a_len (length a)] 
+                            [b_len (length b)]
+                            [a_suffix (string->number (extract-suffix (car a)))]
+                            [b_suffix (string->number (extract-suffix (car b)))])
+                            (cond
+                                [(and (>= a_suffix 1000) (>= b_suffix 1000)) (< a_len b_len)]
+                                [(>= a_suffix 1000) #f]
+                                [(>= b_suffix 1000) #t]
+                                [else (< a_len b_len)])))
+                    conf_graph)])
+            ; (printf "~a\n\n" sorted_graph)
             (bind_var sorted_graph))))
 
 (define assign-registers
