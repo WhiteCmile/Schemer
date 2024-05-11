@@ -6,7 +6,7 @@
     (lambda (spill_vars)
         (lambda (conf_graph)
             (match conf_graph
-                ['() (values '() '())]
+                [() (values '() '())]
                 [(,conf_list . ,[graph_spilled conf_graph])
                     (if (item_in_set? (car conf_list) spill_vars)
                         (values (cons conf_list graph_spilled) conf_graph)
@@ -16,7 +16,7 @@
 (define allocate_frame 
     (lambda (bindings conf_list)
         (let* ([conf_list (replace_uvars conf_list bindings)]
-                [filtered_list (filter frame_var? conf_list)]
+                [filtered_list (filter frame-var? conf_list)]
                 [indexes (sort (lambda (a b) (< a b)) (map (lambda (fv) (frame-var->index fv)) filtered_list))])
             (index->frame-var (find_smallest_no_neg indexes)))))
 
