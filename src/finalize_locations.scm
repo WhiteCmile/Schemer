@@ -16,7 +16,7 @@
                     (if (eq? var triv)
                         '(nop)
                         `(set! ,var ,triv))]
-                [(,triv) (guard (triv? triv)) (replace triv)]
+                [(,triv) (guard (triv? triv)) `(,(replace triv))]
                 [,x x]))))
 
 (define finalize-locations
@@ -25,7 +25,7 @@
             [(letrec ([,label* (lambda () ,[body*])] ...) ,[main_body])
                 `(letrec ([,label* (lambda () ,body*)] ...) ,main_body)]
             [(locate ,binding* ,tail)
-                `(locate ,binding* ,((finalize_statement binding*) tail))])))
+                ((finalize_statement binding*) tail)])))
 
 (define finalize-frame-locations
     (lambda (program)
