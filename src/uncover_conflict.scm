@@ -228,7 +228,7 @@
                     (locate ,bind*
                         (frame-conflict ,conf_frame_graph ,tail))))
                 (let-values
-                    ([(live_set conf_reg_graph tail) ((uncover_conflict register? (union uvar* uloc*) tail))])
+                    ([(live_set conf_reg_graph tail) (uncover_conflict register? (union uvar* uloc*) tail)])
                     `(locals ,uvar*
                         (ulocals ,uloc*
                             (locate ,bind*
