@@ -31,35 +31,48 @@
         (define gen_valid_mov
             (lambda (var binop triv1 triv2)
                 (let ([uloc (unique-name 'uloc)])
-                    (values (list uloc)
-                            `(begin
-                                (set! ,uloc ,triv1)
-                                (set! ,uloc (,binop ,uloc ,triv2))
-                                (set! ,var ,uloc))))))
+                    (if (and (not (int32? triv2)) (int64? triv2))
+                        (let-values 
+                            ([(ulocs effect) (mov_instruction_select `(set! ,var (,binop ,triv1 ,uloc)))])
+                            (values (cons uloc ulocs)
+                                    `(begin
+                                        (set! ,uloc ,triv2)
+                                        ,effect)))
+                        (values (list uloc)
+                                `(begin
+                                    (set! ,uloc ,triv1)
+                                    (set! ,uloc (,binop ,uloc ,triv2))
+                                    (set! ,var ,uloc)))))))
         (match instruction
             [(set! ,var (,binop ,triv1 ,triv2))
                 (if (can_be_reg? var)
                     (cond
-                        [(eq? triv1 var) (values '() instruction)]
-                        [(and (eq? triv2 var) (can_swap? binop))
+                        [(and
+                            (eq? triv1 var)
+                            (or (can_be_reg? triv2) (int32? triv2)))
+                            (values '() instruction)]
+                        [(and
+                            (eq? triv2 var)
+                            (can_swap? binop)
+                            (or (can_be_reg? triv1) (int32? triv1)))
                             (values '() `(set! ,var (,binop ,triv2 ,triv1)))]
                         [else (gen_valid_mov var binop triv1 triv2)])
                     (cond
                         [(eq? '* binop) (gen_valid_mov var binop triv1 triv2)]
                         [(and
                             (eq? triv1 var)
-                            (or (can_be_reg? triv2) (int64? triv2)))
+                            (or (can_be_reg? triv2) (int32? triv2)))
                             (values '() instruction)]
                         [(and
                             (eq? triv2 var)
                             (can_swap? binop)
-                            (or (can_be_reg? triv1) (int64? triv1)))
+                            (or (can_be_reg? triv1) (int32? triv1)))
                             (values '() `(set! ,var (,binop ,triv2 ,triv1)))]
                         [else (gen_valid_mov var binop triv1 triv2)]))]
             [(set! ,var ,triv)
                 (cond
                     [(can_be_reg? var) (values '() instruction)]
-                    [(or (int64? triv) (can_be_reg? triv)) (values '() instruction)]
+                    [(or (int32? triv) (can_be_reg? triv)) (values '() instruction)]
                     [else
                         (let ([uloc (unique-name 'uloc)])
                             (values (list uloc)
