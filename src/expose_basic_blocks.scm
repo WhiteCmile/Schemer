@@ -30,6 +30,18 @@
 
 (define expose-basic-blocks
     (lambda (program)
+        ; This function is used to generate two labels for two branch tails to avoid exponential explosion
+        (define abbreviate_two_tails
+            (lambda (tail1 tail2)
+                (let-values 
+                    ([(label_list1 tail_list1 new_tail1) (Tail tail1)]
+                    [(label_list2 tail_list2 new_tail2) (Tail tail2)])
+                    (let* 
+                        ([label1 (unique-label 'ztl)]
+                        [label2 (unique-label 'ztl)]
+                        [label_list (append (cons label1 label_list1) (cons label2 label_list2))]
+                        [tail_list (append (cons new_tail1 tail_list1) (cons new_tail2 tail_list2))])
+                        (values label_list tail_list label1 label2 tail1 tail2)))))
         (define Tail
             (lambda (tail)
                 (match tail
@@ -41,17 +53,27 @@
                 (match pred
                     [(begin ,effect* ... ,sub_pred)
                         (let-values 
-                            ([(label_list tail_list new_tail) (If sub_pred tail1 tail2)])
-                            (let-values
-                                ([(new_label_list new_tail_list tail) (Effect effect* new_tail)])
-                                (values 
-                                    (append new_label_list label_list)
-                                    (append new_tail_list tail_list)
-                                    tail)))]
+                            ([(label_list tail_list sub_tail) (If sub_pred tail1 tail2)])
+                            (let-values 
+                                ([(new_label_list new_tail_list if_tail) (Effect effect* sub_tail)])
+                                    (values 
+                                        (append new_label_list label_list)
+                                        (append new_tail_list tail_list)
+                                        if_tail)))]
                     [(if ,sub_pred ,sub_pred1 ,sub_pred2)
-                        (let* ([new_tail1 (ins_pred_to_tail sub_pred1 tail1 tail2)]
-                                [new_tail2 (ins_pred_to_tail sub_pred2 tail1 tail2)])
-                            (If sub_pred new_tail1 new_tail2))]
+                        (let-values 
+                            ([(label_list tail_list label1 label2 tail1 tail2) 
+                                (abbreviate_two_tails tail1 tail2)])
+                            (let* 
+                                ([new_tail1 (ins_pred_to_tail sub_pred1 `(,label1) `(,label2))]
+                                [new_tail2 (ins_pred_to_tail sub_pred2 `(,label1) `(,label2))])
+                                (let-values
+                                    ([(new_label_list new_tail_list new_tail) 
+                                        (If sub_pred new_tail1 new_tail2)])
+                                    (values
+                                        (append new_label_list label_list)
+                                        (append new_tail_list tail_list)
+                                        new_tail))))]
                     [(,relop ,triv1 ,triv2)
                         (let-values ([(label_list1 tail_list1 new_tail1) (Tail tail1)]
                                     [(label_list2 tail_list2 new_tail2) (Tail tail2)])
@@ -69,13 +91,24 @@
                 (if (null? effects)
                     (Tail tail)
                     (match (car effects)
+                        (printf "~a\n" (car effects))
                         [(begin ,effect* ...)
                             (Effect (append effect* (cdr effects)) tail)]
+                        ; A new method to handle if statement for avoiding exponential explosion
+                        ; It will turn (cdr effects) tail to a new label at first
+                        ; Then the two branch will get back to the same control flow to avoid exponential explosion
                         [(if ,pred ,effect1 ,effect2)
-                            (let* ([cur_tail (ins_stats_to_tail (cdr effects) tail)]
-                                    [tail1 (ins_stat_to_tail effect1 cur_tail)]
-                                    [tail2 (ins_stat_to_tail effect2 cur_tail)]) 
-                                (If pred tail1 tail2))]
+                            (let* ([label (unique-label 'ztl)]
+                                    [tail1 (ins_stat_to_tail effect1 `(,label))]
+                                    [tail2 (ins_stat_to_tail effect2 `(,label))]) 
+                                (let-values 
+                                    ([(label_list tail_list new_tail) 
+                                        (Tail (ins_stats_to_tail (cdr effects) tail))]
+                                    [(stat_label_list stat_tail_list stat_new_tail) 
+                                        (If pred tail1 tail2)])
+                                    (values (append stat_label_list (cons label label_list)) 
+                                            (append stat_tail_list (cons new_tail tail_list)) 
+                                            stat_new_tail)))]
                         [(nop) (Effect (cdr effects) tail)]
                         [,effect 
                             (let-values ([(label_list tail_list tail) (Effect (cdr effects) tail)])
