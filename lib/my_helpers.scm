@@ -1,5 +1,3 @@
-(load "lib/helpers.scm")
-
 (define triv?
     (lambda (triv)
         (cond

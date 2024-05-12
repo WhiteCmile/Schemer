@@ -1,5 +1,4 @@
 (load "lib/match.scm")
-(load "lib/helpers.scm")
 (load "lib/my_helpers.scm")
 
 ; Remove a variable from the graph

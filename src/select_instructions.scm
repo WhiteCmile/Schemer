@@ -1,5 +1,4 @@
 (load "lib/match.scm")
-(load "lib/helpers.scm")
 (load "lib/my_helpers.scm")
 
 ; These helpers is used to check if the given instruction satisfies machine restrictions

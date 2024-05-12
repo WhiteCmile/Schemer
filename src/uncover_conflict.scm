@@ -1,5 +1,4 @@
 (load "lib/match.scm")
-(load "lib/helpers.scm")
 
 ; Initilize a conflict graph with a given list of uvars
 (define init_conflict_graph
