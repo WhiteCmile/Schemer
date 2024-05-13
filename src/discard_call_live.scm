@@ -5,16 +5,15 @@
         (define Body
             (lambda (body)
                 (match body
-                    [(locate ,bind_list ,[Tail -> tail])
+                    [(locate ,bind_list ,[Stat -> tail])
                         `(locate ,bind_list ,tail)])))
-        (define Tail
-            (lambda (tail)
-                (match tail
-                    [(begin ,effect* ... ,[Tail -> sub_tail])
-                        `(begin ,effect* ... ,sub_tail)]
-                    [(if ,pred ,[Tail -> tail1] ,[Tail -> tail2])
-                        `(if ,pred ,tail1 ,tail2)]
-                    [(,triv ,Loc* ...) `(,triv)])))
+        (define Stat
+            (lambda (statement)
+                (match statement
+                    [(begin ,[statement*] ...) `(begin ,statement* ...)]
+                    [(if ,[statement*] ...) `(if ,statement* ...)]
+                    [(,triv ,Loc* ...) (guard (triv? triv)) `(,triv)]
+                    [,x x])))
         (match program
             [(letrec ([,label* (lambda () ,[Body -> body*])] ...) ,[Body -> body])
                 `(letrec ([,label* (lambda () ,body*)] ...) ,body)])))
