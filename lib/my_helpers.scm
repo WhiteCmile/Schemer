@@ -8,7 +8,7 @@
             [(frame-var? triv) #t]
             [else #f])))
 
-; Check an operator is a relational operator
+; Check whether an operator is a relational operator
 (define relop?
     (lambda (op)
         (cond
@@ -19,6 +19,20 @@
             [(eq? op '=) #t]
             [(eq? op '!=) #t]
             [else #f])))
+
+; Check whether an operator is a arithmetic operator
+(define binop?
+    (lambda (op)
+        (printf "op ~a\n\n" op)
+        (match op
+            [+ #t]
+            [- #t]
+            [* #t]
+            [/ #t]
+            [logand #t]
+            [logor #t]
+            [sra #t]
+            [,x #f])))
 
 ; Return the inverse of a relational operator
 (define inverse_op
