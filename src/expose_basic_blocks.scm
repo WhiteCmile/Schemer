@@ -91,7 +91,6 @@
                 (if (null? effects)
                     (Tail tail)
                     (match (car effects)
-                        (printf "~a\n" (car effects))
                         [(begin ,effect* ...)
                             (Effect (append effect* (cdr effects)) tail)]
                         ; A new method to handle if statement for avoiding exponential explosion
