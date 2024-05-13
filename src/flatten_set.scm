@@ -7,9 +7,9 @@
             [,x x]))
     (define (flatten_set var value)
         (match value
-            [(begin ,effect* ... ,sub_value)
+            [(begin ,[Stat -> effect*] ... ,sub_value)
                 (make-begin (append effect* (list (flatten_set var sub_value))))]
-            [(if ,pred ,value1 ,value2)
+            [(if ,[Stat -> pred] ,value1 ,value2)
                 `(if ,pred ,(flatten_set var value1) ,(flatten_set var value2))]
             [,x `(set! ,var ,x)]))
     (match program
