@@ -103,16 +103,18 @@
 ; For those assignment that LHS is not in the live set, we can discard the assignment
 ; So it may change the structure
 (define uncover_conflict
+    ; Modified in a7, we need to maintain a call live set
+    (define call_live_set '())
     ; Modified in a5
     ; what is a function that checks if a non-variable can be in a live set
     ; For instance, if what = register?, then this uncover-conflict is used to uncover register conflicts.
     (lambda (what uvar* tail)
         (define venture_tail
-            (lambda (conf_graph tail)
+            (lambda (live_set conf_graph tail)
                 (match tail
                     [(begin ,effect* ... ,sub_tail)
                         (let-values
-                            ([(live_set sub_graph new_tail) (venture_tail conf_graph sub_tail)])
+                            ([(live_set sub_graph new_tail) (venture_tail live_set conf_graph sub_tail)])
                             (let-values
                                 ([(live_set sub_graph effects) ((venture_effects live_set sub_graph) effect*)])
                                 (values
@@ -121,8 +123,8 @@
                                     (make-begin (append effects `(,new_tail))))))]
                     [(if ,pred ,tail1 ,tail2)
                         (let-values
-                            ([(live_set1 sub_graph1 tail1) (venture_tail conf_graph tail1)]
-                            [(live_set2 sub_graph2 tail2) (venture_tail conf_graph tail2)])
+                            ([(live_set1 sub_graph1 tail1) (venture_tail live_set conf_graph tail1)]
+                            [(live_set2 sub_graph2 tail2) (venture_tail live_set conf_graph tail2)])
                             (let-values
                                 ([(live_set sub_graph pred) (venture_pred live_set1 live_set2 sub_graph1 sub_graph2 pred)])
                                 (values
@@ -130,10 +132,13 @@
                                     sub_graph
                                     `(if ,pred ,tail1 ,tail2))))]
                     [(,triv ,Loc* ...)
-                        (values 
-                            (init_live_set (cons triv Loc*) what) 
-                            conf_graph
-                            tail)])))
+                        (set! call_live_set (union call_live_set live_set))
+                        (let 
+                            ([live_set (append_live_set live_set (cons triv Loc*) what)])
+                            (values 
+                                live_set
+                                conf_graph
+                                tail))])))
         (define venture_pred
             (lambda (live_set1 live_set2 conf_graph1 conf_graph2 pred)
                 (match pred
@@ -189,6 +194,13 @@
                         (handle_assignment live_set conf_graph effect var `(,triv1 ,triv2) what)]
                     [(set! ,var ,triv)
                         (handle_assignment live_set conf_graph effect var `(,triv) what)]
+                    [(return-point ,label ,tail)
+                        (let-values
+                            ([(live_set conf_graph tail) (venture_tail live_set conf_graph tail)])
+                            (values 
+                                live_set 
+                                conf_graph 
+                                `(return-point ,label ,tail)))]
                     [,x (values live_set conf_graph effect)])))
         (define venture_effects
             (lambda (live_set conf_graph)
@@ -202,19 +214,24 @@
                                     live_set
                                     sub_graph
                                     (cons effect last_effects)))]))))
-        (venture_tail (init_conflict_graph uvar*) tail)))
+        (let-values 
+            ([(live_set conf_graph tail) (venture_tail '() (init_conflict_graph uvar*) tail)])
+            (values live_set call_live_set conf_graph tail))))
 
 (define uncover-frame-conflict
     (lambda (program)
         (match program
             [(letrec ([,label* (lambda () ,[body*])] ...) ,[body])
                 `(letrec ([,label* (lambda () ,body*)] ...) ,body)]
-            [(locals ,uvar* ,tail)
+            [(locals ,uvar* 
+                (new-frames ,new_frame* ,tail))
                 (let-values
-                    ([(live_set conf_frame_graph tail) (uncover_conflict frame-var? uvar* tail)])
+                    ([(live_set call_live_set conf_frame_graph tail) (uncover_conflict frame-var? uvar* tail)])
                     `(locals ,uvar*
-                        (frame-conflict 
-                            ,(sort (lambda (a b) (< (length a) (length b))) conf_frame_graph) ,tail)))])))
+                        (new-frames ,new_frame*
+                            (spills ,(filter uvar? call_live_set)
+                                (frame-conflict ,(sort (lambda (a b) (< (length a) (length b))))
+                                    (call-live ,call_live_set ,tail))))))])))
 
 (define uncover-register-conflict
     (lambda (program)
