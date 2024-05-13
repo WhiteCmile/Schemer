@@ -35,9 +35,10 @@
                     [,triv (guard (triv? triv))
                         (values '() '() triv)]
                     [(begin ,[Stat -> uvar** effect*] ... ,[value_expression -> header uvars sub_value])
-                        (values (append effect* header)
-                                (append (apply append uvar**) uvars)
-                                sub_value)]
+                        (let* ([new_var (unique-name 'value)])
+                            (values (append (append effect* header) `((set! ,new_var ,sub_value)))
+                                    (cons new_var (append (apply append uvar**) uvars))
+                                    new_var))]
                     [(if ,[Stat -> pred_uvar pred] ,[Value -> uvar** value*] ...)
                         (let*
                             ([new_var (unique-name 'value)]
