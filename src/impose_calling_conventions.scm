@@ -2,15 +2,17 @@
     (define fp frame-pointer-register)
     (define ra return-address-register)
     (define rv return-value-register)
-    (define (Body uvars)
-        (lambda (body)
+    (define (Body uvars_with_body)
+        (let 
+            ([uvars (car uvars_with_body)]
+            [body (cadr uvars_with_body)]) 
             (match body
                 [(locals ,body_uvar* ,tail)
                     (let ([rp (unique-name 'rp)])
                         `(locals ,(append body_uvar* (cons rp uvars))
                             ,(make-begin 
-                                (cons (handle_formal_params uvars rp)
-                                    (Tail rp tail)))))])))
+                                `(,(handle_formal_params uvars rp)
+                                    ,(Tail rp tail)))))])))
     ; Initialize the formal parameters of corresponding registers and frame locations by calling convention
     (define (handle_formal_params params rp)
         (make-begin 
@@ -20,7 +22,7 @@
                     [regs parameter-registers] 
                     [pos 0])
                     (match params
-                        ['() '()]
+                        [() '()]
                         [(,uvar . ,rest)
                             (if (null? regs)
                                 (cons `(set! ,uvar ,(index->frame-var pos))
@@ -67,5 +69,5 @@
                     (set! ,rv ,expr) 
                     (,rp ,fp ,rv))]))
     (match program
-        [(letrec ([,label* (lambda ,uvar** ,body*)] ...) ,[(Body '()) -> body])
-            `(letrec ([,label* (lambda () ,((Body uvar**) body*))] ...) ,body)]))
+        [(letrec ([,label* (lambda ,[Body -> body*])] ...) ,body)
+            `(letrec ([,label* (lambda () ,body*)] ...) ,(Body `(() ,body)))]))
