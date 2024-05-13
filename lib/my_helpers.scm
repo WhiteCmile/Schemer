@@ -23,7 +23,6 @@
 ; Check whether an operator is a arithmetic operator
 (define binop?
     (lambda (op)
-        (printf "op ~a\n\n" op)
         (match op
             [+ #t]
             [- #t]
