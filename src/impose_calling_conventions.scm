@@ -50,7 +50,7 @@
                     [pos 0]
                     [assigned_fvs '()])
                     (match params
-                        [() (append set_of_regs `((,proc ,fp ,ra ,@rest_regs ,@assigned_fvs)))]
+                        [() (append set_of_regs `((set! ,ra ,rp) (,proc ,fp ,ra ,@rest_regs ,@assigned_fvs)))]
                         [(,var . ,rest)
                             (let* 
                                 ([fv (index->frame-var pos)]
