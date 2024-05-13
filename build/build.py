@@ -41,6 +41,9 @@ f"""
 
 (compiler-passes '(
   verify-scheme
+  remove-complex-opera*
+  flatten-set!
+  impose-calling-conventions
   uncover-frame-conflict
   introduce-allocation-forms
   (iterate
