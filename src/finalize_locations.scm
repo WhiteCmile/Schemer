@@ -17,6 +17,8 @@
                         '(nop)
                         `(set! ,var ,triv))]
                 [(,triv) (guard (triv? triv)) `(,(replace triv))]
+                [(,proc ,triv* ...) (guard (triv? proc)) `(,proc ,(replace triv*) ...)]
+                [(return-point ,label ,[tail]) `(return-point ,label ,tail)]
                 [,uvar (guard (uvar? uvar)) (replace uvar)]
                 [,x x]))))
 
