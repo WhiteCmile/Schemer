@@ -37,22 +37,22 @@
                                     bindings)
                             (cdr graph))))))))
 
-(define assign-frame
+(define pre-assign-frame
     (lambda (program)
         (match program
             [(letrec ([,label* (lambda () ,[body*])] ...) ,[body])
                 `(letrec ([,label* (lambda () ,body*)] ...) ,body)]
             [(locals ,uvar*
-                (ulocals ,uloc*
+                (new-frames ,new_frame*
                     (spills ,spill_var*
-                        (locate ,binding*
-                            (frame-conflict ,conf_graph ,tail)))))
-                ; bind* and new_bindings are bindings from uvars to fvars
+                        (frame-conflict ,conf_graph 
+                            (call-live ,call_live_var* ,tail)))))
+                ; new_bindings are bindings from uvars to fvars
                 ; The confliction list of the binded variables will be removed from conf_graph
                 (let-values 
                     ([(new_bindings conf_graph) (fvar_allocator spill_var* binding* conf_graph)])
                     `(locals ,uvar*
-                        (ulocals ,uloc*
+                        (new-frames ,new_frame*
                             (locate ,new_bindings
-                                (frame-conflict ,conf_graph ,tail)))))]
-            [,x x])))
+                                (frame-conflict ,conf_graph 
+                                    (call-live ,call_live_var* ,tail))))))])))
