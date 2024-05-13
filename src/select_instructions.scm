@@ -97,6 +97,9 @@
                     [(set! ,var ,triv) (mov_instruction_select statement)]
                     [(,relop ,triv1 ,triv2) (guard (relop? relop)) (rel_instruction_select statement)]
                     [(,triv ,Loc* ...) (guard (triv? triv)) (jump_instruction_select statement)]
+                    [(return-point ,label ,[Stat -> uloc_list tail])
+                        (values uloc_list 
+                            `(return-point ,label ,tail))]
                     [,x (values '() x)])))
         (match program
             [(letrec ([,label* (lambda () ,[body*])] ...) ,[body])
