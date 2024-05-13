@@ -19,7 +19,7 @@
             (lambda (var)
                 (if (register? var)
                     var
-                    (make-disp-opnd 'rbp (* 8 (frame-var->index var)))))]
+                    (make-disp-opnd frame-pointer-register (ash (frame-var->index var) align-shift))))]
         [handle_triv
             (lambda (triv)
                 (match triv
