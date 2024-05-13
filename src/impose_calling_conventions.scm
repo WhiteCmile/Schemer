@@ -32,7 +32,7 @@
     ; Assign appropriate registers or frame locations to actual parameters
     (define (handle_actual_params rp proc params)
         (let-values
-            ([(rest_params rest_regs set_of_regs)
+            ([(rest_params used_regs set_of_regs)
                 (let loop
                     ([params params]
                     [regs parameter-registers])
@@ -42,15 +42,18 @@
                             (if (null? regs)
                                 (values params '() '())
                                 (let-values 
-                                    ([(rest_params rest_regs set_to_regs) (loop rest (cdr regs))])
-                                    (values rest_params rest_regs (cons `(set! ,(car regs) ,var) set_to_regs))))]))])
+                                    ([(rest_params used_regs set_to_regs) (loop rest (cdr regs))])
+                                    (values 
+                                        rest_params 
+                                        (cons (car regs) used_regs) 
+                                        (cons `(set! ,(car regs) ,var) set_to_regs))))]))])
             (make-begin 
                 (let loop
                     ([params rest_params]
                     [pos 0]
                     [assigned_fvs '()])
                     (match params
-                        [() (append set_of_regs `((set! ,ra ,rp) (,proc ,fp ,ra ,@rest_regs ,@assigned_fvs)))]
+                        [() (append set_of_regs `((set! ,ra ,rp) (,proc ,fp ,ra ,@used_regs ,@assigned_fvs)))]
                         [(,var . ,rest)
                             (let* 
                                 ([fv (index->frame-var pos)]
