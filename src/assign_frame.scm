@@ -56,3 +56,59 @@
                             (locate ,new_bindings
                                 (frame-conflict ,conf_graph 
                                     (call-live ,call_live_var* ,tail))))))])))
+
+; Get frame size of a function
+; The size of the frame is, simply, one more than the maximum index of the frame locations of the call-live
+; variables or frame variables.
+(define (get_frame_size bindings call_live_vars)
+    (let* 
+        ([fv_list1 (filter frame-var? call_live_vars)]
+        [fv_list2 (map cadr bindings)]
+        [index_list (map (lambda (fv) (frame-var->index fv)) (append fv_list1 fv_list2))])
+    (add1 (apply max index_list))))
+
+; Assign frame locations for new frame variables
+(define (assign_new_frame new_frame_lists frame_size)
+    (define bindings '())
+    (map 
+        (lambda (new_frame_list)
+            (let loop ([new_frame_list new_frame_list] [pos frame_size])
+                (map new_frame_list
+                    [() (void)]
+                    [(,fv . ,rest)
+                        (set! bindings (cons (list fv (index->frame-var pos)) bindings))
+                        (loop rest (add1 pos))])))
+        new_frame_lists)
+    bindings)
+
+; Increament and decrement frame pointer register in return-point statement
+(define (handle_stack frame_size statement)
+    (define fp frame-pointer-register)
+    (define nb (ash frame_size align-shift))
+    (match statement
+        [(begin ,[statements*] ...) `(begin ,statements* ...)]
+        [(if ,[statements*] ...) `(if ,statements* ...)]
+        [(return-point ,label ,[tail])
+            `(begin
+                (set! ,fp (+ ,fp ,nb))
+                (return-pointer ,label ,tail)
+                (set! ,fp (- ,fp ,nb)))]
+        [,x x]))
+            
+(define (assign-new-frame program)
+    (match program
+        [(letrec ([,label* (lambda () ,[body*])] ...) ,[body])
+            `(letrec ([,label* (lambda () ,body*)] ...) ,body)]
+        [(locals ,uvar*
+            (new-frames ,new_frame_list*
+                (locate ,binding*
+                    (frame-conflict ,conf_graph
+                        (call-live ,call_live_var* ,tail)))))
+            (let*
+                ([frame_size (get_frame_size ,binding* ,call_live_var*)]
+                [new_bindings (assign_new_frame new_frame_list* frame_size)])
+                `(locals ,(difference uvar* (apply union new_frame_list*))
+                    (ulocals ()
+                        (locate ,(append new_bindings binding*)
+                            (frame-conflict ,conf_graph
+                                ,(handle_stack frame_size tail))))))]))
