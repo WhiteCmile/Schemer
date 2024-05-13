@@ -2,17 +2,17 @@
     (define fp frame-pointer-register)
     (define ra return-address-register)
     (define rv return-value-register)
-    (define (Body uvars_with_body)
-        (let 
-            ([uvars (car uvars_with_body)]
-            [body (cadr uvars_with_body)]) 
+    (define (Body_with_wrapper body_with_lambda)
+        (define (Body uvars body)
             (match body
                 [(locals ,body_uvar* ,tail)
                     (let ([rp (unique-name 'rp)])
                         `(locals ,(append body_uvar* (cons rp uvars))
                             ,(make-begin 
                                 `(,(handle_formal_params uvars rp)
-                                    ,(Tail rp tail)))))])))
+                                    ,(Tail rp tail)))))]))
+        (match body_with_lambda
+            [(lambda ,uvar* ,body) (Body uvar* body)]))
     ; Initialize the formal parameters of corresponding registers and frame locations by calling convention
     (define (handle_formal_params params rp)
         (make-begin 
@@ -50,7 +50,7 @@
                     [pos 0]
                     [assigned_fvs '()])
                     (match params
-                        [() (append set_of_regs `((proc ,fp ,ra ,@rest_regs ,@assigned_fvs)))]
+                        [() (append set_of_regs `((,proc ,fp ,ra ,@rest_regs ,@assigned_fvs)))]
                         [(,var . ,rest)
                             (let* 
                                 ([fv (index->frame-var pos)]
@@ -58,7 +58,7 @@
                                 (cons `(set! ,fv ,var) statements))])))))
     (define (Tail rp tail)
         (match tail
-            [(begin ,effect* ,sub_tail) 
+            [(begin ,effect* ... ,sub_tail) 
                 (make-begin (append effect* (list (Tail rp sub_tail))))]
             [(if ,pred ,tail1 ,tail2)
                 `(if ,pred ,(Tail rp tail1) ,(Tail rp tail2))]
@@ -69,5 +69,5 @@
                     (set! ,rv ,expr) 
                     (,rp ,fp ,rv))]))
     (match program
-        [(letrec ([,label* (lambda ,[Body -> body*])] ...) ,body)
-            `(letrec ([,label* (lambda () ,body*)] ...) ,(Body `(() ,body)))]))
+        [(letrec ([,label* ,[Body_with_wrapper -> body*]] ...) ,body)
+            `(letrec ([,label* (lambda () ,body*)] ...) ,(Body_with_wrapper `(lambda () ,body)))]))
