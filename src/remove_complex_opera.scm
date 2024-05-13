@@ -29,6 +29,7 @@
                             (make-begin (append header `(,new_value)))))))
         ; header is a list of expressions
         ; and the returned value must be a triv
+        ; In this helper, value can be a binop either
         (define value_expression
             (lambda (value)
                 (match value
@@ -46,10 +47,10 @@
                             (values (list `(set! ,new_var (if ,pred ,value* ...)))
                                     uvars
                                     new_var))]
-                    [(,binop ,[value_expression -> header* uvar** value*] ...)
+                    [(,[value_expression -> header* uvar** value*] ...)
                         (let*
                             ([new_var (unique-name 'value)]
-                            [header (append (apply append header*) `((set! ,new_var (,binop ,value* ...))))]
+                            [header (append (apply append header*) `((set! ,new_var (,value* ...))))]
                             [uvars (cons new_var (apply append uvar**))])
                             (values header
                                     uvars
