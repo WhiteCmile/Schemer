@@ -1,4 +1,7 @@
 (load "lib/match.scm")
+(load "src/remove_complex_opera.scm")
+(load "src/flatten_set.scm")
+(load "src/impose_calling_conventions.scm")
 (load "src/uncover_conflict.scm")
 (load "src/introduce_allocation_forms.scm")
 (load "src/select_instructions.scm")
