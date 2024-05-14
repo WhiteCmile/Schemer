@@ -11,7 +11,10 @@
                     [(set! ,[handle_var -> var1] (,binop ,[handle_triv -> triv1] ,[handle_triv -> triv2])) 
                         `(set! ,var1 (,binop ,triv1 ,triv2))]
                     [(set! ,[handle_var -> var] ,[handle_triv -> triv]) `(set! ,var ,triv)]
+                    [(return-point ,label ,[handle_statement -> tail])
+                        `(return-point ,label ,tail)]
                     [(,relop ,[handle_triv -> triv1] ,[handle_triv -> triv2])
+                        (guard (relop? relop))
                         `(,relop ,triv1 ,triv2)]
                     [(,triv) (guard (triv? triv)) (list (handle_triv triv))]
                     [,x x]))]
