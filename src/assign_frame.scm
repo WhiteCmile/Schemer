@@ -50,7 +50,7 @@
                 ; new_bindings are bindings from uvars to fvars
                 ; The confliction list of the binded variables will be removed from conf_graph
                 (let-values 
-                    ([(new_bindings conf_graph) (fvar_allocator spill_var* binding* conf_graph)])
+                    ([(new_bindings conf_graph) (fvar_allocator spill_var* '() conf_graph)])
                     `(locals ,uvar*
                         (new-frames ,new_frame*
                             (locate ,new_bindings
@@ -65,7 +65,9 @@
         ([fv_list1 (filter frame-var? call_live_vars)]
         [fv_list2 (map cadr bindings)]
         [index_list (map (lambda (fv) (frame-var->index fv)) (append fv_list1 fv_list2))])
-    (add1 (apply max index_list))))
+        (if (null? index_list)
+            0
+            (add1 (apply max index_list)))))
 
 ; Assign frame locations for new frame variables
 (define (assign_new_frame new_frame_lists frame_size)
