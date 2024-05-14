@@ -73,7 +73,7 @@
     (map 
         (lambda (new_frame_list)
             (let loop ([new_frame_list new_frame_list] [pos frame_size])
-                (map new_frame_list
+                (match new_frame_list
                     [() (void)]
                     [(,fv . ,rest)
                         (set! bindings (cons (list fv (index->frame-var pos)) bindings))
@@ -105,7 +105,7 @@
                     (frame-conflict ,conf_graph
                         (call-live ,call_live_var* ,tail)))))
             (let*
-                ([frame_size (get_frame_size ,binding* ,call_live_var*)]
+                ([frame_size (get_frame_size binding* call_live_var*)]
                 [new_bindings (assign_new_frame new_frame_list* frame_size)])
                 `(locals ,(difference uvar* (apply union new_frame_list*))
                     (ulocals ()
