@@ -108,6 +108,12 @@
                                     (values (append stat_label_list (cons label label_list)) 
                                             (append stat_tail_list (cons new_tail tail_list)) 
                                             stat_new_tail)))]
+                        [(return-point ,label ,tail)
+                            (let-values 
+                                ([(label_list tail_list new_tail) (Tail tail)])
+                                (values (cons label label_list)
+                                        (cons new_tail tail_list)
+                                        `(,label)))]
                         [(nop) (Effect (cdr effects) tail)]
                         [,effect 
                             (let-values ([(label_list tail_list tail) (Effect (cdr effects) tail)])
