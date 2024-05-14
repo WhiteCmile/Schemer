@@ -227,7 +227,7 @@
                 (new-frames ,new_frame* ,tail))
                 (let-values
                     ([(live_set call_live_set conf_frame_graph tail) (uncover_conflict frame-var? uvar* tail)])
-                    `(locals ,uvar*
+                    `(locals ,(difference uvar* (filter uvar? call_live_set))
                         (new-frames ,new_frame*
                             (spills ,(filter uvar? call_live_set)
                                 (frame-conflict ,(sort (lambda (a b) (< (length a) (length b))) conf_frame_graph)
