@@ -57,6 +57,26 @@
                                 (frame-conflict ,conf_graph 
                                     (call-live ,call_live_var* ,tail))))))])))
 
+(define assign-frame
+    (lambda (program)
+        (match program
+            [(letrec ([,label* (lambda () ,[body*])] ...) ,[body])
+                `(letrec ([,label* (lambda () ,body*)] ...) ,body)]
+            [(locals ,uvar*
+                (ulocals ,uloc*
+                    (spills ,spill_var*
+                        (locate ,binding*
+                            (frame-conflict ,conf_graph ,tail)))))
+                ; bind* and new_bindings are bindings from uvars to fvars
+                ; The confliction list of the binded variables will be removed from conf_graph
+                (let-values 
+                    ([(new_bindings conf_graph) (fvar_allocator spill_var* binding* conf_graph)])
+                    `(locals ,uvar*
+                        (ulocals ,uloc*
+                            (locate ,new_bindings
+                                (frame-conflict ,conf_graph ,tail)))))]
+            [,x x])))
+
 ; Get frame size of a function
 ; The size of the frame is, simply, one more than the maximum index of the frame locations of the call-live
 ; variables or frame variables.
