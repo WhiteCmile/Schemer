@@ -55,22 +55,24 @@
                                 ([fv (index->frame-var pos)]
                                 [statements (loop rest (add1 pos) (cons fv assigned_fvs))])
                                 (cons `(set! ,fv ,var) statements))])))))
-    ; Handle non-tail calls, assign appropriate registers or new frame locations to actual parameters
-    (define (nontail_call proc params)
-        (define rp-label (unique-label 'rp-label))
-        `(return-point ,rp-label
-            ,(make-begin 
-                (let-values
-                    ([(rest_params used_regs set_of_regs) (assign_regs_to_params params)])
-                    (let loop ([params rest_params] [assigned_nfvs '()])
-                        (match params
-                            [() `(,@set_of_regs (set! ,ra ,rp-label) (,proc ,fp ,ra ,@used_regs ,@assigned_nfvs))]
-                            [(,var . ,rest)
-                                (let ([nfv (unique-name 'nfv)])
-                                    `((set! ,nfv ,var) ,@(loop rest (cons nfv assigned_nfvs))))]))))))
     (define (Body_with_wrapper body_with_lambda)
         (define (Body uvars body)
             (define new_frame_lists '())
+            ; Handle non-tail calls, assign appropriate registers or new frame locations to actual parameters
+            (define (nontail_call proc params)
+                (define rp-label (unique-label 'rp-label))
+                `(return-point ,rp-label
+                    ,(make-begin 
+                        (let-values
+                            ([(rest_params used_regs set_of_regs) (assign_regs_to_params params)])
+                            (let loop ([params rest_params] [assigned_nfvs '()])
+                                (match params
+                                    [() 
+                                        (set! new_frame_lists (cons assigned_nfvs new_frame_lists))
+                                        `(,@set_of_regs (set! ,ra ,rp-label) (,proc ,fp ,ra ,@used_regs ,@assigned_nfvs))]
+                                    [(,var . ,rest)
+                                        (let ([nfv (unique-name 'nfv)])
+                                            `((set! ,nfv ,var) ,@(loop rest (append assigned_nfvs `(,nfv)))))]))))))
             (define (Tail rp tail)
                 (match tail
                     [(begin ,[Stat -> effect*] ... ,sub_tail) 
