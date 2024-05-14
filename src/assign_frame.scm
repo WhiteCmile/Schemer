@@ -93,7 +93,7 @@
         [(return-point ,label ,[tail])
             `(begin
                 (set! ,fp (+ ,fp ,nb))
-                (return-pointer ,label ,tail)
+                (return-point ,label ,tail)
                 (set! ,fp (- ,fp ,nb)))]
         [,x x]))
             
