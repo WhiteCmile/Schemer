@@ -12,6 +12,7 @@
                 (match statement
                     [(begin ,[statement*] ...) `(begin ,statement* ...)]
                     [(if ,[statement*] ...) `(if ,statement* ...)]
+                    [(return-point ,label ,[tail]) `(return-point ,label ,tail)]
                     [(,triv ,Loc* ...) (guard (triv? triv)) `(,triv)]
                     [,x x])))
         (match program
