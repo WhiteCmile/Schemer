@@ -103,12 +103,12 @@
 ; For those assignment that LHS is not in the live set, we can discard the assignment
 ; So it may change the structure
 (define uncover_conflict
-    ; Modified in a7, we need to maintain a call live set
-    (define call_live_set '())
     ; Modified in a5
     ; what is a function that checks if a non-variable can be in a live set
     ; For instance, if what = register?, then this uncover-conflict is used to uncover register conflicts.
     (lambda (what uvar* tail)
+        ; Modified in a7, we need to maintain a call live set
+        (define call_live_set '())
         (define venture_tail
             (lambda (live_set conf_graph tail)
                 (match tail
@@ -230,7 +230,7 @@
                     `(locals ,uvar*
                         (new-frames ,new_frame*
                             (spills ,(filter uvar? call_live_set)
-                                (frame-conflict ,(sort (lambda (a b) (< (length a) (length b))))
+                                (frame-conflict ,(sort (lambda (a b) (< (length a) (length b))) conf_frame_graph)
                                     (call-live ,call_live_set ,tail))))))])))
 
 (define uncover-register-conflict
