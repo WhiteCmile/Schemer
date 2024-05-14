@@ -98,7 +98,7 @@
             (match body
                 [(locals ,body_uvar* ,tail)
                     (let ([rp (unique-name 'rp)])
-                        `(locals `(,@body_uvar* ,@(cons rp uvars) ,@(apply union new_frame_lists))
+                        `(locals (,@body_uvar* ,@(cons rp uvars) ,@(apply union new_frame_lists))
                             (new-frames ,new_frame_lists
                                 ,(make-begin 
                                     `(,(handle_formal_params uvars rp)
