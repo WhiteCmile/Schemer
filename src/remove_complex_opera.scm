@@ -13,6 +13,15 @@
                     [(set! ,var ,[Value -> uvars new_value])
                         (values uvars
                                 `(set! ,var ,new_value))]
+                    [(mref ,[value_expression -> header1 uvars1 value1]
+                        ,[value_expression -> header2 uvars2 value2])
+                        (values 
+                            (append uvars1 uvars2)
+                            (make-begin `(,header1 ,header2 `(mref ,value1 ,value2))))]
+                    [(alloc ,[value_expression -> header uvars value])
+                        (values 
+                            uvars
+                            (make-begin `(,header `(alloc ,value))))]
                     [(,[value_expression -> header* uvar** value*] ...)
                         (values (apply append uvar**)
                             (make-begin (append (apply append header*) `((,value* ...)))))]
@@ -47,6 +56,19 @@
                             (values (list `(set! ,new_var (if ,pred ,value* ...)))
                                     uvars
                                     new_var))]
+                    [(alloc ,[value_expression -> header uvars new_value])
+                        (let*
+                            ([new_var (unique-name 'value)]
+                            [uvars (cons new_var uvars)])
+                            (values `(,header (set! ,new_var (alloc ,new_value)))
+                                    uvars
+                                    new_var))]
+                    [(mref ,[value_expression -> header_base uvars_base base]
+                        ,[value_expression -> header_offset uvars_offset offset])
+                        (values 
+                            `(,header_base ,header_offset `(set! ,new_var (mref ,base ,offset)))
+                            `(,new_var ,@uvars_base ,@uvars_offset)
+                            new_var)]
                     [(,[value_expression -> header* uvar** value*] ...)
                         (let*
                             ([new_var (unique-name 'value)]
