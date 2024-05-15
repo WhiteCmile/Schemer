@@ -18,10 +18,16 @@
                         (values 
                             (append uvars1 uvars2)
                             (make-begin `(,header1 ,header2 `(mref ,value1 ,value2))))]
+                    ; Since the (alloc) statement must be a tail, we can turn its value to a variable
+                    ; This provides convenience for handling (alloc)
                     [(alloc ,[value_expression -> header uvars value])
-                        (values 
-                            uvars
-                            (make-begin `(,header `(alloc ,value))))]
+                        (let ([new_var (unique-name 'value)])
+                            (values 
+                                (cons new_var uvars)
+                                (make-begin 
+                                    `(,header 
+                                        (set! ,new_var (alloc ,value))
+                                        new_var))))]
                     [(,[value_expression -> header* uvar** value*] ...)
                         (values (apply append uvar**)
                             (make-begin (append (apply append header*) `((,value* ...)))))]
