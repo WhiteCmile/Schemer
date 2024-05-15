@@ -23,6 +23,7 @@
     (define fp frame-pointer-register)
     (define ra return-address-register)
     (define rv return-value-register)
+    (define ap allocation-pointer-register)
     ; Initialize the formal parameters of corresponding registers and frame locations by calling convention
     (define (handle_formal_params params rp)
         (make-begin 
@@ -49,7 +50,7 @@
                     [pos 0]
                     [assigned_fvs '()])
                     (match params
-                        [() (append set_of_regs `((set! ,ra ,rp) (,proc ,fp ,ra ,@used_regs ,@assigned_fvs)))]
+                        [() (append set_of_regs `((set! ,ra ,rp) (,proc ,ap ,fp ,ra ,@used_regs ,@assigned_fvs)))]
                         [(,var . ,rest)
                             (let* 
                                 ([fv (index->frame-var pos)]
@@ -69,7 +70,7 @@
                                 (match params
                                     [() 
                                         (set! new_frame_lists (cons assigned_nfvs new_frame_lists))
-                                        `(,@set_of_regs (set! ,ra ,rp-label) (,proc ,fp ,ra ,@used_regs ,@assigned_nfvs))]
+                                        `(,@set_of_regs (set! ,ra ,rp-label) (,proc ,ap ,fp ,ra ,@used_regs ,@assigned_nfvs))]
                                     [(,var . ,rest)
                                         (let ([nfv (unique-name 'nfv)])
                                             `((set! ,nfv ,var) ,@(loop rest (append assigned_nfvs `(,nfv)))))]))))))
@@ -79,12 +80,12 @@
                         (make-begin (append effect* (list (Tail rp sub_tail))))]
                     [(if ,[Stat -> pred] ,tail1 ,tail2)
                         `(if ,pred ,(Tail rp tail1) ,(Tail rp tail2))]
-                    [(,triv ,triv* ...) (guard (not (binop? triv)))
+                    [(,triv ,triv* ...) (guard (triv? triv))
                         (handle_actual_params rp triv triv*)]
                     [,expr 
                         `(begin 
                             (set! ,rv ,expr) 
-                            (,rp ,fp ,rv))]))
+                            (,rp ,ap ,fp ,rv))]))
             ; Stat helper handles Pred and Effect structures
             (define (Stat statement)
                 (match statement
