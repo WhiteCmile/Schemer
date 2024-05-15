@@ -35,9 +35,9 @@
                 [(,triv) (guard (triv? triv)) (list (Triv triv))]
                 [,x x]))
         (define (Var var)
-            (if (register? var)
-                var
-                (make-disp-opnd fp (- (ash (frame-var->index var) align-shift) rbp_offset))))
+            (if (frame-var? var)
+                (make-disp-opnd fp (- (ash (frame-var->index var) align-shift) rbp_offset))
+                var))
         (define (Triv triv)
             (match triv
                 [,x (guard (int64? x)) x]
