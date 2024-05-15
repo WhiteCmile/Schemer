@@ -65,10 +65,11 @@
                                     new_var))]
                     [(mref ,[value_expression -> header_base uvars_base base]
                         ,[value_expression -> header_offset uvars_offset offset])
-                        (values 
-                            `(,header_base ,header_offset `(set! ,new_var (mref ,base ,offset)))
-                            `(,new_var ,@uvars_base ,@uvars_offset)
-                            new_var)]
+                        (let ([new_var (unique-name 'value)])
+                            (values 
+                                `(,header_base ,header_offset `(set! ,new_var (mref ,base ,offset)))
+                                `(,new_var ,@uvars_base ,@uvars_offset)
+                                new_var))]
                     [(,[value_expression -> header* uvar** value*] ...)
                         (let*
                             ([new_var (unique-name 'value)]
