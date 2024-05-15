@@ -190,6 +190,13 @@
                                     live_set
                                     sub_graph
                                     `(if ,pred ,effect1 ,effect2))))]
+                    [(set! ,var (mref ,base ,offset))
+                        (handle_assignment live_set conf_graph effect var `(,base ,offset) what)]
+                    [(mset! ,base ,offset ,triv)
+                        (values
+                            (append_live_set live_set (list base offset triv) what)
+                            conf_graph
+                            effect)]
                     [(set! ,var (,binop ,triv1 ,triv2))
                         (handle_assignment live_set conf_graph effect var `(,triv1 ,triv2) what)]
                     [(set! ,var ,triv)
