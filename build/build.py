@@ -40,9 +40,10 @@ f"""
             [,x (error who "invalid Program ~s" x)])))
 
 (compiler-passes '(
-  verify-scheme
+  verify-uil
   remove-complex-opera*
   flatten-set!
+  expose-allocation-pointer
   impose-calling-conventions
   uncover-frame-conflict
   pre-assign-frame
@@ -56,6 +57,7 @@ f"""
     assign-frame)
   discard-call-live
   finalize-locations
+  expose-memory-operands
   expose-frame-var
   expose-basic-blocks
   flatten-program
