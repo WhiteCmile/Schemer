@@ -41,6 +41,7 @@ f"""
 
 (compiler-passes '(
   verify-scheme
+  specify-representation
   uncover-locals
   remove-let
   verify-uil
