@@ -7,9 +7,15 @@
             [(set! ,var (alloc ,expr)) 
                 `(begin (set! ,var ,ap)
                         (set! ,ap (+ ,ap ,expr)))]
+            [(return-point ,label ,[Stat -> tail])
+                `(return-point ,label ,tail)]
             [,x x]))
     (match program
         [(letrec ([,label* (lambda ,uvar** ,[body*])] ...) ,[body])
             `(letrec ([,label* (lambda ,uvar** ,body*)] ...) ,body)]
-        [(locals ,uvar* ,[Stat -> tail])
-            `(locals ,uvar* ,tail)]))
+        [(locals ,uvar* 
+            (new-frames ,new_frame_lists
+                ,[Stat -> tail]))
+            `(locals ,uvar* 
+                (new-frames ,new_frame_lists
+                    ,tail))]))
