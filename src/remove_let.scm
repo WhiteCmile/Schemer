@@ -3,12 +3,12 @@
     (define (Stat statement)
         (match statement
             [(begin ,[statement*] ...) (make-begin statement*)]
-            [(if ,[statement*] ...) (if ,statement* ...)]
+            [(if ,[statement*] ...) `(if ,statement* ...)]
             [(mset! ,[value*] ...) `(mset! ,value* ...)]
             [(alloc ,[value]) `(alloc ,value)]
             [(let ,binding* ,[statement])
                 (make-begin 
-                    `(,(map (lambda (binding) 
+                    `(,@(map (lambda (binding) 
                             `(set! ,(car binding) ,(cadr binding))) binding*)
                         ,statement))]
             [(,[value*] ...) `(,value* ...)]
