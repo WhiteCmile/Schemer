@@ -1,4 +1,6 @@
 (load "lib/match.scm")
+(load "src/uncover_locals.scm")
+(load "src/remove_let.scm")
 (load "src/remove_complex_opera.scm")
 (load "src/flatten_set.scm")
 (load "src/expose_allocation_pointer.scm")
