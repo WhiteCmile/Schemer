@@ -43,8 +43,8 @@ f"""
   verify-uil
   remove-complex-opera*
   flatten-set!
-  expose-allocation-pointer
   impose-calling-conventions
+  expose-allocation-pointer
   uncover-frame-conflict
   pre-assign-frame
   assign-new-frame
@@ -57,8 +57,8 @@ f"""
     assign-frame)
   discard-call-live
   finalize-locations
-  expose-memory-operands
   expose-frame-var
+  expose-memory-operands
   expose-basic-blocks
   flatten-program
   generate-x86-64

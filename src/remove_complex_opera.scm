@@ -17,7 +17,7 @@
                         ,[value_expression -> header2 uvars2 value2])
                         (values 
                             (append uvars1 uvars2)
-                            (make-begin `(,header1 ,header2 `(mref ,value1 ,value2))))]
+                            (make-begin (append header1 (append header2 `((mref ,value1 ,value2))))))]
                     ; Since the (alloc) statement must be a tail, we can turn its value to a variable
                     ; This provides convenience for handling (alloc)
                     [(alloc ,[value_expression -> header uvars value])
