@@ -40,6 +40,9 @@ f"""
             [,x (error who "invalid Program ~s" x)])))
 
 (compiler-passes '(
+  verify-scheme
+  uncover-locals
+  remove-let
   verify-uil
   remove-complex-opera*
   flatten-set!
