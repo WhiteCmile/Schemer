@@ -6,11 +6,9 @@
             [(if ,[statement*] ...) `(if ,statement* ...)]
             [(mset! ,[value*] ...) `(mset! ,value* ...)]
             [(alloc ,[value]) `(alloc ,value)]
-            [(let ,binding* ,[statement])
+            [(let ([,var* ,[expr*]] ...) ,[statement])
                 (make-begin 
-                    `(,@(map (lambda (binding) 
-                            `(set! ,(car binding) ,(cadr binding))) binding*)
-                        ,statement))]
+                    `((set! ,var* ,expr*) ... ,statement))]
             [(,[value*] ...) `(,value* ...)]
             [,x x]))
     (match program
