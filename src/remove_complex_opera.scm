@@ -66,15 +66,15 @@
                         (let*
                             ([new_var (unique-name 'value)]
                             [uvars (cons new_var uvars)])
-                            (values `(,header (set! ,new_var (alloc ,new_value)))
+                            (values (append header `((set! ,new_var (alloc ,new_value))))
                                     uvars
                                     new_var))]
                     [(mref ,[value_expression -> header_base uvars_base base]
                         ,[value_expression -> header_offset uvars_offset offset])
                         (let ([new_var (unique-name 'value)])
                             (values 
-                                `(,header_base ,header_offset `(set! ,new_var (mref ,base ,offset)))
-                                `(,new_var ,@uvars_base ,@uvars_offset)
+                                (append header_base (append header_offset `((set! ,new_var (mref ,base ,offset)))))
+                                (cons new_var (append uvars_base uvars_offset))
                                 new_var))]
                     [(,[value_expression -> header* uvar** value*] ...)
                         (let*
