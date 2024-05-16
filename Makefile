@@ -23,3 +23,5 @@ a8:
 	$(MAKE) test TASK_NAME=a8
 a9:
 	$(MAKE) test TASK_NAME=a9
+a10:
+	$(MAKE) test TASK_NAME=a10
