@@ -25,9 +25,9 @@
                             (values 
                                 (cons new_var uvars)
                                 (make-begin 
-                                    `(,header 
+                                    `(,@header
                                         (set! ,new_var (alloc ,value))
-                                        new_var))))]
+                                        ,new_var))))]
                     [(,[value_expression -> header* uvar** value*] ...)
                         (values (apply append uvar**)
                             (make-begin (append (apply append header*) `((,value* ...)))))]
