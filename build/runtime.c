@@ -180,6 +180,118 @@ static void usage_error(char *who) {
   exit(1);
 }
 
+#define SCHEME_PRINTER
+
+#ifdef SCHEME_PRINTER
+
+/* generated from Scheme definitions */
+#define word_size 8
+#define object_alignment 8
+#define shift_fixnum 3
+#define mask_fixnum 7
+#define tag_fixnum 0
+#define mask_pair 7
+#define tag_pair 1
+#define size_pair 16
+#define disp_car 0
+#define disp_cdr 8
+#define mask_vector 7
+#define tag_vector 3
+#define disp_vector_length 0
+#define disp_vector_data 8
+#define mask_procedure 7
+#define tag_procedure 2
+#define disp_procedure_code 0
+#define disp_procedure_data 8
+#define mask_boolean 247
+#define tag_boolean 6
+#define _false 6
+#define _true 14
+#define _nil 22
+#define _void 30
+
+typedef long ptr;
+
+#define UNFIX(x) (x >> shift_fixnum)
+#define TAG(x,mask) (x & mask)
+#define UNTAG(x,tag) ((x)-tag)
+#define CAR(x) (*(ptr *)(UNTAG(x,tag_pair) + disp_car))
+#define CDR(x) (*(ptr *)(UNTAG(x,tag_pair) + disp_cdr))
+#define VECTORLENGTH(x) (*(ptr *)(UNTAG(x,tag_vector) + disp_vector_length))
+#define VECTORDATA(x) ((ptr *)(UNTAG(x,tag_vector) + disp_vector_data))
+
+#define MAXDEPTH 100
+#define MAXLENGTH 1000
+
+static void print1(ptr x, int d) {
+  if (TAG(x, mask_fixnum) == tag_fixnum) {
+    printf("%ld", (long)UNFIX(x));
+  } else if (TAG(x, mask_pair) == tag_pair) {
+    int len = 0;
+    ptr y;
+    
+    if (d > MAXDEPTH) {
+      printf("(...)");
+      return;
+    }
+    printf("(");
+    print1(CAR(x), d+1);
+    y = CDR(x);
+    while (TAG(y, mask_pair) == tag_pair && (len < MAXLENGTH-1)) {
+      printf(" ");
+      print1(CAR(y), d+1);
+      y = CDR(y);
+      len++;
+    }
+    if (y != _nil)
+      if (len == MAXLENGTH-1)
+        printf(" ...");
+      else {
+        printf(" . ");
+        print1(y, d+1);
+      }
+    printf(")");
+  } else if (TAG(x, mask_vector) == tag_vector) {
+    long i, n;
+    ptr *p;
+    if (d > MAXDEPTH) {
+      printf("#(...)");
+      return;
+    }
+    printf("#(");
+    n = UNFIX(VECTORLENGTH(x));
+    p = VECTORDATA(x);
+    i = n > MAXLENGTH ? MAXLENGTH : n;
+    if (i != 0) {
+      print1(*p, d+1);
+      while (--i) {
+        printf(" ");
+        print1(*++p, d+1);
+      }
+    }
+    if (n > MAXLENGTH) printf(" ..."); 
+    printf(")");
+  } else if (TAG(x, mask_procedure) == tag_procedure) {
+    printf("#<procedure>");
+  } else if (x == _false) {
+    printf("#f");
+  } else if (x == _true) {
+    printf("#t");
+  } else if (x == _nil) {
+    printf("()");
+  } else if (x == _void) {
+    printf("#<void>");
+  }
+}
+
+static void print(ptr x) {
+  print1(x, 0);
+}
+
+#else /* SCHEME_PRINTER */
+
 static void print(long x) {
     printf("%ld", x);
 } 
+
+#endif /* SCHEME_PRINTER */
