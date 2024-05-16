@@ -95,3 +95,24 @@
                 [(= (car lst) i) (loop (+ i 1) (cdr lst))]
                 [(= (car lst) (- i 1)) (loop i (cdr lst))]
                 [else i]))))
+
+; Given a list of trivs, turn all frame variables into unique variables
+; return 
+;   new_trivs: a list of trivs with all frame variables turned into unique variables
+;   new_ulocs: a list of uvars corresponding to those frame variables
+;   instructions: a list of instructions to bind those unique variables to frame variables
+(define (turn_fv_to_uvars trivs)
+    (define instructions '())
+    (define uloc_list '())
+    (define new_trivs
+        (let loop ([trivs trivs])
+            (match trivs
+                [() '()]
+                [(,triv . ,rest)
+                    (if (frame-var? triv)
+                        (let ([uloc (unique-name 'uloc)])
+                            (set! instructions `(,@instructions (set! ,uloc ,triv)))
+                            (set! uloc_list (cons uloc uloc_list))
+                            (cons uloc (loop rest)))
+                        (cons triv (loop rest)))])))
+    (values new_trivs uloc_list instructions))

@@ -78,6 +78,28 @@
                             (values (list uloc)
                                     `(begin (set! ,uloc ,triv) (set! ,var ,uloc))))])])))
 
+(define (mset_instruction_select base offset value)
+    (let-values 
+        ([(new_trivs new_ulocs headers) (turn_fv_to_uvars (list base offset value))])
+        (values new_ulocs
+            (make-begin `(,@headers (mset! ,@new_trivs))))))
+
+(define (mref_instruction_select statement)
+    (match statement
+        [(mref ,base ,offset) 
+            (let-values 
+                ([(new_trivs new_ulocs headers) (turn_fv_to_uvars (list base offset))])
+                (values new_ulocs
+                    (make-begin `(,@headers (mref ,@new_trivs)))))]
+        [(set! ,var (mref ,base ,offset))
+            (let-values 
+                ([(new_trivs new_ulocs headers) (turn_fv_to_uvars (list var base offset))])
+                (values new_ulocs
+                    (make-begin
+                        (if (frame-var? var)
+                            `(,@(cdr headers) (set! ,(car new_trivs) (mref ,@(cdr new_trivs))) (set! ,var ,(car new_trivs)))
+                            `(,@headers (set! ,(car new_trivs) (mref ,@(cdr new_trivs))))))))]))
+
 (define select-instructions
     (lambda (program)
         ; This helper handles Tail, Pred, Effect all together
@@ -93,6 +115,9 @@
                         (values
                             (union uloc_pred uloc_t1 uloc_t2)
                             `(if ,pred ,tail1 ,tail2))]
+                    [(mset! ,base ,offset ,value) (mset_instruction_select base offset value)]
+                    [(mref ,base ,offset) (mref_instruction_select statement)]
+                    [(set! ,var (mref ,base ,offset)) (mref_instruction_select statement)]
                     [(set! ,var (,binop ,triv1 ,triv2)) (mov_instruction_select statement)]
                     [(set! ,var ,triv) (mov_instruction_select statement)]
                     [(,relop ,triv1 ,triv2) (guard (relop? relop)) (rel_instruction_select statement)]
