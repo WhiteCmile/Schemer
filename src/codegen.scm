@@ -1,4 +1,5 @@
 (load "lib/match.scm")
+(load "src/specify_representation.scm")
 (load "src/uncover_locals.scm")
 (load "src/remove_let.scm")
 (load "src/remove_complex_opera.scm")
