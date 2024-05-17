@@ -1,5 +1,7 @@
 (define offset-car (- disp-car tag-pair))
 (define offset-cdr (- disp-cdr tag-pair))
+(define offset-vec-len (- disp-vector-length tag-vector))
+(define offset-vec-data (- disp-vector-data tag-vector))
 
 ; Check whether a prim is a value-prim
 (define (value-prim? prim)
@@ -13,7 +15,6 @@
         [void #t]
         [,x (binop? x)]))
 
-; Check whether a prim is a pred-prim
 (define (pred-prim? prim)
     (match prim
         [boolean? #t]
@@ -24,14 +25,13 @@
         [vector? #t]
         [,x (relop? x)]))
 
-; Check whether a prim is an effect-prim
 (define (effect-prim? prim)
     (match prim
         [set-car! #t]
         [set-cdr! #t]
-        [vector-set! #t]))
+        [vector-set! #t]
+        [,x #f]))
 
-; Specify the representation of an immediate
 (define (specify_immediate statement)
     (match statement
         [(quote #f) $false]
@@ -39,8 +39,6 @@
         [(quote ()) $nil]
         [(quote ,x) (guard (fixnum? x)) (ash x shift-fixnum)]))
 
-
-; Specify the representation of a value prim
 ; prim is the prim, and values is a list of specified values
 (define (specify_value_prim prim values)
     ; Specify the representation when pred is a binary operator
@@ -61,17 +59,48 @@
                         (mset! ,tmp ,offset-car ,tmp-car)
                         (mset! ,tmp ,offset-cdr ,tmp-cdr)
                         ,tmp)))))
+    ; Specify representation of a vector creation
+    (define (specify_vec_create len)
+        (let ([tmp-len (unique-name 'tmp)]
+            [tmp (unique-name 'tmp)])
+            `(let ([,tmp-len ,len])
+                (let 
+                    ([,tmp 
+                        (+ (alloc (+ ,disp-vector-data ,tmp-len)) 
+                            ,tag-vector)])
+                    (begin
+                        (mset! ,tmp ,offset-vec-len ,tmp-len)
+                        ,tmp)))))
     (match prim
-        [void `(,$void)]
+        [void $void]
         [,op (guard (binop? op)) (specify_binop op values)]
         [car `(mref ,(car values) ,offset-car)]
         [cdr `(mref ,(car values) ,offset-cdr)]
-        [cons (specify_cons (car values) (cadr values))]))
+        [cons (specify_cons (car values) (cadr values))]
+        [vector-length `(mref ,(car values) ,offset-vec-len)]
+        [vector-ref `(mref ,(car values) (+ ,offset-vec-data ,(cadr values)))]
+        [make-vector (specify_vec_create (car values))]))
 
 (define (specify_effect_prim prim values)
+    ; Specify the representation of a vector-set!
+    (define (specify_vec_set vec idx val)
+        `(mset! ,vec (+ ,offset-vec-data ,idx) ,val))
     (match prim
         [set-car! `(mset! ,(car values) ,offset-car ,(cadr values))]
-        [set-cdr! `(mset! ,(car values) ,offset-cdr ,(cadr values))]))
+        [set-cdr! `(mset! ,(car values) ,offset-cdr ,(cadr values))]
+        [vector-set! 
+            (specify_vec_set (car values) (cadr values) (caddr values))]))
+
+(define (specify_pred_prim prim values)
+    (let ([expr (car values)])
+        (match prim
+            [boolean? `(= (logand ,expr ,mask-boolean) ,tag-boolean)]
+            [fixnum? `(= (logand ,expr ,mask-fixnum) ,tag-fixnum)]
+            [pair? `(= (logand ,expr ,mask-pair) ,tag-pair)]
+            [vector? `(= (logand ,expr ,mask-vector) ,tag-vector)]
+            [null? (specify_pred_prim 'eq? (cons $nil values))]
+            [eq? `(= ,expr ,(cadr values))]
+            [,x `(,prim ,@values)])))
 
 (define (specify-representation program)
     ; The Stmt helper handles Value, Pred and Effect structures
