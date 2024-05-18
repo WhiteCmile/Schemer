@@ -150,3 +150,11 @@
     (or (value-prim? prim)
         (pred-prim? prim)
         (effect-prim? prim)))
+
+; Check whether a word is begin, if or let
+(define (keyword? word)
+    (match word
+        [begin #t]
+        [if #t]
+        [let #t]
+        [,x #f]))
