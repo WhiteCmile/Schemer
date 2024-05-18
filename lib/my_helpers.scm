@@ -116,3 +116,37 @@
                             (cons uloc (loop rest)))
                         (cons triv (loop rest)))])))
     (values new_trivs uloc_list instructions))
+
+; Check whether a prim is a value-prim
+(define (value-prim? prim)
+    (match prim
+        [car #t]
+        [cdr #t]
+        [cons #t]
+        [make-vector #t]
+        [vector-length #t]
+        [vector-ref #t]
+        [void #t]
+        [,x (binop? x)]))
+
+(define (pred-prim? prim)
+    (match prim
+        [boolean? #t]
+        [eq? #t]
+        [fixnum? #t]
+        [null? #t]
+        [pair? #t]
+        [vector? #t]
+        [,x (relop? x)]))
+
+(define (effect-prim? prim)
+    (match prim
+        [set-car! #t]
+        [set-cdr! #t]
+        [vector-set! #t]
+        [,x #f]))
+
+(define (prim? prim)
+    (or (value-prim? prim)
+        (pred-prim? prim)
+        (effect-prim? prim)))

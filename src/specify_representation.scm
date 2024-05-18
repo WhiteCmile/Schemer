@@ -3,34 +3,6 @@
 (define offset-vec-len (- disp-vector-length tag-vector))
 (define offset-vec-data (- disp-vector-data tag-vector))
 
-; Check whether a prim is a value-prim
-(define (value-prim? prim)
-    (match prim
-        [car #t]
-        [cdr #t]
-        [cons #t]
-        [make-vector #t]
-        [vector-length #t]
-        [vector-ref #t]
-        [void #t]
-        [,x (binop? x)]))
-
-(define (pred-prim? prim)
-    (match prim
-        [boolean? #t]
-        [eq? #t]
-        [fixnum? #t]
-        [null? #t]
-        [pair? #t]
-        [vector? #t]
-        [,x (relop? x)]))
-
-(define (effect-prim? prim)
-    (match prim
-        [set-car! #t]
-        [set-cdr! #t]
-        [vector-set! #t]
-        [,x #f]))
 
 (define (specify_immediate statement)
     (match statement
