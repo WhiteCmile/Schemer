@@ -1,4 +1,6 @@
 (load "lib/match.scm")
+(load "src/lift_letrec.scm")
+(load "src/normalize_context.scm")
 (load "src/specify_representation.scm")
 (load "src/uncover_locals.scm")
 (load "src/remove_let.scm")
@@ -15,6 +17,7 @@
 (load "src/expose_memory_operands.scm")
 (load "src/expose_frame_var.scm")
 (load "src/expose_basic_blocks.scm")
+(load "src/optimize_jumps.scm")
 (load "src/flatten_program.scm")
 
 (define generate-x86-64
