@@ -13,9 +13,9 @@
                 ,[Expr -> sub_label* sub_lambda* sub_expr])
                 (values
                     `(,@label* ,@(apply append label**) ,@sub_label*)
-                    `(,@([lambda ,uvar** ,expr*] ...) ,@(apply append lambda**) ,@sub_lambda*)
+                    `((lambda ,uvar** ,expr*) ... ,@(apply append lambda**) ,@sub_lambda*)
                     sub_expr)]
-            [(,[Expr -> label** lambda** ,expr*] ...)
+            [(,[Expr -> label** lambda** expr*] ...)
                 (values
                     (apply append label**)
                     (apply append lambda**)
@@ -23,4 +23,12 @@
             [,x (values '() '() x)])) 
     (let-values 
         ([(labels lambdas expr) (Expr program)])
-        `(letrec ([,labels ,lambdas] ...) ,expr)))
+        `(letrec
+            ,(let loop 
+                ([labels labels] 
+                [lambdas lambdas])
+                (match labels
+                    [() '()]
+                    [(,label . ,rest)
+                        (cons `(,label ,(car lambdas)) (loop rest (cdr lambdas)))]))
+            ,expr)))
