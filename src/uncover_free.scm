@@ -20,9 +20,9 @@
                 [(let ([,uvar* ,[bind_frees* bind_expr*]] ...) ,expr)
                     (let-values 
                         ([(frees sub_expr) ((Expr (union locals uvar*)) expr)])
-                        (values (union frees (apply append bind_frees*)))
+                        (values (union frees (apply append bind_frees*))
                             `(let ([,uvar* ,bind_expr*] ...)
-                                ,sub_expr))]
+                                ,sub_expr)))]
                 [(letrec ([,uvar* ,[Lambda -> lambda_expr*]] ...)
                     ,[frees sub_expr])
                     (values frees
