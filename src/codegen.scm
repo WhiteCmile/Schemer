@@ -23,7 +23,7 @@
 (load "src/convert_closures.scm")
 (load "src/introduce_proc_prims.scm")
 (load "src/optimize_direct_call.scm")
-(load "src/remove_anonymous_call.scm")
+(load "src/remove_anonymous_lambda.scm")
 (load "src/sanitize_binding_forms.scm")
 (load "src/optimize_known_call.scm")
 
