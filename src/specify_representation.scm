@@ -2,6 +2,8 @@
 (define offset-cdr (- disp-cdr tag-pair))
 (define offset-vec-len (- disp-vector-length tag-vector))
 (define offset-vec-data (- disp-vector-data tag-vector))
+(define offset-proc-data (- disp-procedure-data tag-procedure))
+(define offset-proc-code (- disp-procedure-code tag-procedure))
 
 
 (define (specify_immediate statement)
@@ -101,17 +103,24 @@
         [cons (specify_cons (car values) (cadr values))]
         [vector-length `(mref ,(car values) ,offset-vec-len)]
         [vector-ref `(mref ,(car values) (+ ,offset-vec-data ,(cadr values)))]
-        [make-vector (specify_vec_create (car values))]))
+        [make-vector (specify_vec_create (car values))]
+        [procedure-ref `(mref ,(car values) ,(constant_folding '+ offset-proc-data (cadr values)))]
+        [procedure-code `(mref ,(car values) ,offset-proc-code)]))
 
 (define (specify_effect_prim prim values)
     ; Specify the representation of a vector-set!
     (define (specify_vec_set vec idx val)
         `(mset! ,vec ,(constant_folding '+ offset-vec-data idx) ,val))
+    ; Specify the representation of a procedure-set!
+    (define (specify_proc_set proc n expr)
+        `(mset! ,proc ,(constant_folding '+ offset-proc-data n) ,expr))
     (match prim
         [set-car! `(mset! ,(car values) ,offset-car ,(cadr values))]
         [set-cdr! `(mset! ,(car values) ,offset-cdr ,(cadr values))]
         [vector-set! 
-            (specify_vec_set (car values) (cadr values) (caddr values))]))
+            (specify_vec_set (car values) (cadr values) (caddr values))]
+        [procedure-set!
+            (specify_proc_set (car values) (cadr values) (caddr values))]))
 
 (define (specify_pred_prim prim values)
     (let ([expr (car values)])
@@ -120,6 +129,7 @@
             [fixnum? `(= (logand ,expr ,mask-fixnum) ,tag-fixnum)]
             [pair? `(= (logand ,expr ,mask-pair) ,tag-pair)]
             [vector? `(= (logand ,expr ,mask-vector) ,tag-vector)]
+            [procedure? `(= (logand ,expr ,mask-procedure) ,tag-procedure)]
             [null? (specify_pred_prim 'eq? (cons $nil values))]
             [eq? `(= ,expr ,(cadr values))]
             [,x `(,prim ,@values)])))
