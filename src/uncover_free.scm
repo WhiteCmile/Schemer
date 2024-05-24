@@ -12,15 +12,15 @@
             (match expr
                 [(quote ,imm) (values '() `(quote ,imm))]
                 [(begin ,[frees* expr*] ...)
-                    (values (apply append frees*)
+                    (values (apply union frees*)
                         `(begin ,expr* ...))]
                 [(if ,[frees* expr*] ...)
-                    (values (apply append frees*)
+                    (values (apply union frees*)
                         `(if ,expr* ...))]
                 [(let ([,uvar* ,[bind_frees* bind_expr*]] ...) ,expr)
                     (let-values 
                         ([(frees sub_expr) ((Expr (union locals uvar*)) expr)])
-                        (values (union frees (apply append bind_frees*))
+                        (values (union frees (apply union bind_frees*))
                             `(let ([,uvar* ,bind_expr*] ...)
                                 ,sub_expr)))]
                 [(letrec ([,uvar* ,[Lambda -> lambda_expr*]] ...)
@@ -31,10 +31,10 @@
                             `(letrec ([,uvar* ,lambda_expr*] ...)
                                 ,sub_expr)))]
                 [(,prim ,[frees* expr*] ...) (guard (prim? prim))
-                    (values (apply append frees*)
+                    (values (apply union frees*)
                         `(,prim ,expr* ...))]
                 [(,[frees* expr*] ...)
-                    (values (apply append frees*)
+                    (values (apply union frees*)
                         `(,expr* ...))]
                 [,uvar 
                     (if (member uvar locals)
