@@ -27,7 +27,7 @@
         [(let () ,[sub_expr]) sub_expr]
         [(letrec ([,uvar* (lambda ,params* ,[lambda_body*])] ...) ,[sub_expr])
             `(letrec ([,uvar* (lambda ,params* ,lambda_body*)] ...) ,sub_expr)]
-        [(let ([,uvar* ,expr*]) ,[sub_expr])
+        [(let ([,uvar* ,expr*] ...) ,[sub_expr])
             (extract_lambda_bindings uvar* expr* sub_expr)]
         [(,[expr*] ...) `(,@expr*)]
         [,x x]))
