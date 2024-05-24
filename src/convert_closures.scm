@@ -10,7 +10,7 @@
                     ([label (unique-label uvar)]
                     [cp (unique-name 'cp)])
                     (values 
-                        `(,uvar ,label ,@param*)
+                        `(,uvar ,label ,@free*)
                         `(,label
                             (lambda (,cp ,@param*)
                                 (bind-free (,cp ,@free*)
