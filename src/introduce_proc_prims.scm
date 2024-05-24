@@ -36,7 +36,9 @@
                 [(,prim ,[expr*] ...) (guard (prim? prim))
                     `(,prim ,expr* ...)]
                 [(,[proc_call] ,[expr*] ...) 
-                    `((procedure-code ,proc_call) ,expr* ...)]
+                    (if (label? proc_call)
+                        `(,proc_call ,@expr*)
+                        `((procedure-code ,proc_call) ,expr* ...))]
                 [,uvar 
                     (let 
                         ([index (index-of uvar frees)])
