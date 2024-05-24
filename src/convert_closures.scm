@@ -14,6 +14,13 @@
                             (lambda (,cp ,@param*)
                                 (bind-free (,cp ,@free*)
                                     ,expr)))))]))
+    (define (Proc proc_expr arg*)
+        (match proc_expr
+            [,uvar (guard (uvar? uvar)) `(,uvar ,uvar ,@arg*)]
+            [,x (let 
+                    ([uvar (unique-name 'proc)])
+                    `(let ([,uvar ,proc_expr])
+                        (,uvar ,uvar ,@arg*)))]))
     (define (Expr expr)
         (match expr
             [(quote ,imm) `(quote ,imm)]
@@ -29,7 +36,6 @@
                         (closures ,closure* ,sub_expr))]
             [(,prim ,[expr*] ...) (guard (prim? prim))
                 `(,prim ,expr* ...)]
-            [(,[proc] ,[expr*] ...) 
-                `(,proc ,proc ,expr* ...)]
+            [(,[proc_expr] ,[expr*] ...) (Proc proc_expr expr*)]
             [,x x]))
     (Expr program))
