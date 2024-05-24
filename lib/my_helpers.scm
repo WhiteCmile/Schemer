@@ -158,3 +158,15 @@
         [if #t]
         [let #t]
         [,x #f]))
+
+; Return the index of an object in a list
+; Return #f if not found
+(define (index-of obj lst)
+    (let loop ((lst lst) (index 0))
+        (cond
+            ((null? lst) #f) 
+            ((eq? obj (car lst)) index) 
+            (else (loop (cdr lst) (+ index 1))) 
+        )
+    )
+)
