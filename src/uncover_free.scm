@@ -4,9 +4,11 @@
             [(lambda ,uvar* ,expr)
                 (let-values 
                     ([(frees expr) ((Expr uvar*) expr)])
-                    `(lambda ,uvar*
-                        (free ,frees
-                            ,expr)))]))
+                    (values 
+                        (difference frees uvar*)
+                        `(lambda ,uvar*
+                            (free ,frees
+                                ,expr))))]))
     (define (Expr locals)
         (lambda (expr)
             (match expr
@@ -23,11 +25,12 @@
                         (values (union frees (apply union bind_frees*))
                             `(let ([,uvar* ,bind_expr*] ...)
                                 ,sub_expr)))]
-                [(letrec ([,uvar* ,[Lambda -> lambda_expr*]] ...)
+                [(letrec ([,uvar* ,[Lambda -> lambda_frees* lambda_expr*]] ...)
                     ,sub_expr)
                     (let-values 
                         ([(frees sub_expr) ((Expr (union locals uvar*)) sub_expr)])
-                        (values frees
+                        (values 
+                            (union frees (difference (apply union lambda_frees*) (union locals uvar*)))
                             `(letrec ([,uvar* ,lambda_expr*] ...)
                                 ,sub_expr)))]
                 [(,prim ,[frees* expr*] ...) (guard (prim? prim))
