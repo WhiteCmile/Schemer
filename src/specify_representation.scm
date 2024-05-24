@@ -95,6 +95,20 @@
                         (begin
                             (mset! ,tmp ,offset-vec-len ,val_len)
                             ,tmp))))))
+    (define (specify_proc_create label n)
+        (let
+            ([tmp-n (unique-name 'tmp)]
+            [tmp (unique-name 'tmp)])
+            (let
+                ([val_n (if (is_fixnum? n) n tmp-n)])
+                `(let ([,tmp-n ,n])
+                    (let 
+                        ([,tmp 
+                            (+ (alloc ,(constant_folding '+ disp-procedure-data val_n)) 
+                                ,tag-procedure)])
+                        (begin
+                            (mset! ,tmp ,offset-proc-code ,label)
+                            ,tmp))))))
     (match prim
         [void $void]
         [,op (guard (binop? op)) (specify_binop op values)]
@@ -105,7 +119,8 @@
         [vector-ref `(mref ,(car values) (+ ,offset-vec-data ,(cadr values)))]
         [make-vector (specify_vec_create (car values))]
         [procedure-ref `(mref ,(car values) ,(constant_folding '+ offset-proc-data (cadr values)))]
-        [procedure-code `(mref ,(car values) ,offset-proc-code)]))
+        [procedure-code `(mref ,(car values) ,offset-proc-code)]
+        [make-procedure (specify_proc_create (car values) (cadr values))]))
 
 (define (specify_effect_prim prim values)
     ; Specify the representation of a vector-set!
