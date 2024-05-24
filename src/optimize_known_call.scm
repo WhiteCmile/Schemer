@@ -1,8 +1,8 @@
 (define (optimize-known-call program)
     (define (Expr known_closures can_replace)
-        (define Proc (Expr known_closures #t))
-        (define NotProc (Expr known_closures #f))
         (lambda (expr)
+            (define Proc (Expr known_closures #t))
+            (define NotProc (Expr known_closures #f))
             (match expr
                 [(quote ,imm) `(quote ,imm)]
                 [(begin ,[NotProc -> expr*] ... ,[tail]) `(begin ,@expr* ,tail)]
