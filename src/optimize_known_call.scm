@@ -10,7 +10,7 @@
                 [(let ([,uvar* ,[NotProc -> expr*]] ...) ,[sub_expr])
                     `(let ([,uvar* ,expr*] ...) ,sub_expr)]
                 [(letrec ([,uvar* ,expr*] ...)
-                    (closures ,closure* ...
+                    (closures ,closure*
                         ,sub_expr))
                     (let*
                         ([known_closures 
@@ -20,14 +20,19 @@
                                     closure*))]
                         [expr* (map (Expr known_closures #f) expr*)])
                         `(letrec ([,uvar* ,expr*] ...) 
-                            ,((Expr known_closures can_replace) sub_expr)))]
+                            (closures ,closure*
+                                ,((Expr known_closures can_replace) sub_expr))))]
+                [(lambda ,param*
+                    (bind-free ,free*
+                        ,[sub_expr]))
+                    `(lambda ,param* (bind-free ,free* ,sub_expr))]
                 [(,prim ,[NotProc -> expr*] ...) (guard (prim? prim))
                     `(,prim ,@expr*)]
                 [(,[Proc -> proc] ,[NotProc -> expr*] ...)
                     `(,proc ,@expr*)]
                 [,uvar (guard (uvar? uvar))
                     (let ([closure (assoc uvar known_closures)])
-                        (if closure
+                        (if (and closure can_replace)
                             (cadr closure)
                             uvar))]
                 [,x (error 'Expr "Unknown expression ~s\n" expr)])))
