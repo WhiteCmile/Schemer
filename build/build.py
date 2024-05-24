@@ -41,6 +41,9 @@ f"""
 
 (compiler-passes '(
   verify-scheme
+  uncover-free
+  convert-closures
+  introduce-procedure-primitives
   lift-letrec
   normalize-context
   specify-representation
