@@ -8,18 +8,18 @@
                 [() '()]
                 [(,uvar . ,rest)
                     (match (car expr*)
-                        [(lambda ,params* ,[sanitize-binding-forms lambda_body])
+                        [(lambda ,params* ,[sanitize-binding-forms -> lambda_body])
                             (set! letrec_bindings 
                                 (cons
                                     (list uvar `(lambda ,params* ,lambda_body))
                                     letrec_bindings))]
-                        [,x (set! let_bindings (cons (list uvar x) let_bindings))])
+                        [,expr (set! let_bindings (cons (list uvar (sanitize-binding-forms expr)) let_bindings))])
                     (loop rest (cdr expr*))]))
         (cond
             [(null? let_bindings) `(letrec ,letrec_bindings ,sub_expr)]
             [(null? letrec_bindings) `(let ,let_bindings ,sub_expr)]
             [else `(letrec ,letrec_bindings
-                        (let ,let_bidings ,sub_expr))]))
+                        (let ,let_bindings ,sub_expr))]))
     (match program
         [(begin ,[expr*] ...) (make-begin expr*)]
         [(if ,[expr*] ...) `(if ,@expr*)]
