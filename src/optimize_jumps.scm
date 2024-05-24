@@ -23,7 +23,7 @@
     (match program
         [(letrec ([,label* (lambda () ,tail*)] ...)
             ,tail)
-            (let-value
+            (let-values
                 ([(label* tail* assoc_list) (build_assoc_list label* tail*)])
                 (let 
                     ([optimized_tail* (map (optimize_tail assoc_list) tail*)]
