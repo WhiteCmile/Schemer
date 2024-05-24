@@ -127,6 +127,9 @@
         [vector-length #t]
         [vector-ref #t]
         [void #t]
+        [make-procedure #t]
+        [procedure-ref #t]
+        [procedure-code #t]
         [,x (binop? x)]))
 
 (define (pred-prim? prim)
@@ -137,6 +140,7 @@
         [null? #t]
         [pair? #t]
         [vector? #t]
+        [procedure? #t]
         [,x (relop? x)]))
 
 (define (effect-prim? prim)
@@ -144,6 +148,7 @@
         [set-car! #t]
         [set-cdr! #t]
         [vector-set! #t]
+        [procedure-set! #t]
         [,x #f]))
 
 (define (prim? prim)
