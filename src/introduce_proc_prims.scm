@@ -1,15 +1,4 @@
 (define (introduce-procedure-primitives program)
-    (define (Closure closure)
-        (match closure
-            [(,proc ,label ,free* ...)
-                (values 
-                    `(,proc (make-procedure ,label (quote ,(length free*))))
-                    (let loop ([frees free*] [index 0])
-                        (match frees
-                            [() '()]
-                            [(,uvar . ,rest)
-                                (cons `(procedure-set! ,proc (quote ,index) ,uvar)
-                                    (loop rest (add1 index)))])))]))
     (define (Lambda lambda_expr)
         (match lambda_expr
             [(lambda ,param*
@@ -18,6 +7,17 @@
                 `(lambda ,param*
                     ,((Expr (car free*) (cdr free*)) expr))]))
     (define (Expr proc frees)
+        (define (Closure closure)
+            (match closure
+                [(,proc_call ,label ,free* ...)
+                    (values 
+                        `(,proc_call (make-procedure ,label (quote ,(length free*))))
+                        (let loop ([free* free*] [index 0])
+                            (match free*
+                                [() '()]
+                                [(,uvar . ,rest)
+                                    (cons `(procedure-set! ,proc_call (quote ,index) ,((Expr proc frees) uvar))
+                                        (loop rest (add1 index)))])))]))
         (lambda (expr)
             (match expr
                 [(quote ,imm) `(quote ,imm)]
