@@ -19,6 +19,9 @@
 (load "src/expose_basic_blocks.scm")
 (load "src/optimize_jumps.scm")
 (load "src/flatten_program.scm")
+(load "src/uncover_free.scm")
+(load "src/convert_closures.scm")
+(load "src/introduce_proc_prims.scm")
 
 (define generate-x86-64
     (lambda (program)
