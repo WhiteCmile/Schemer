@@ -41,8 +41,12 @@ f"""
 
 (compiler-passes '(
   verify-scheme
+  optimize-direct-call
+  remove-anonymous-lambda
+  sanitize-binding-forms
   uncover-free
   convert-closures
+  optimize-known-call
   introduce-procedure-primitives
   lift-letrec
   normalize-context
