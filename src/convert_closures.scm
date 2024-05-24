@@ -1,6 +1,5 @@
 (define (convert-closures program)
     (define (Lambda lambda_expr)
-        (printf "lambda: ~a\n" lambda_expr)
         (match lambda_expr
             [(,uvar 
                 (lambda ,param*
