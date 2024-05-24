@@ -24,10 +24,12 @@
                             `(let ([,uvar* ,bind_expr*] ...)
                                 ,sub_expr)))]
                 [(letrec ([,uvar* ,[Lambda -> lambda_expr*]] ...)
-                    ,[frees sub_expr])
-                    (values frees
-                        `(letrec ([,uvar* ,lambda_expr*] ...)
-                            ,sub_expr))]
+                    ,sub_expr)
+                    (let-values 
+                        ([(frees sub_expr) ((Expr (union locals uvar*)) sub_expr)])
+                        (values frees
+                            `(letrec ([,uvar* ,lambda_expr*] ...)
+                                ,sub_expr)))]
                 [(,prim ,[frees* expr*] ...) (guard (prim? prim))
                     (values (apply append frees*)
                         `(,prim ,expr* ...))]
