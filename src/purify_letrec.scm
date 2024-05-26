@@ -20,8 +20,8 @@
                             (match bind_expr
                                 [(,prim ,expr* ...) (guard (prim? prim)) 
                                     (andmap func expr*)]
+                                [(quote ,x) (guard (immediate? x)) #t]
                                 [,x (guard (uvar? x)) (not (member x letrec_uvar*))]
-                                [,x (guard (immediate? x)) #t]
                                 [,x #f]))])
                     (func bind_expr))))
         (let loop ([uvar* letrec_uvar*] [bind_expr* bind_expr*])
@@ -62,8 +62,9 @@
                                 (letrec ,(map list lambda_x lambda_e)
                                     (let ,(map list temp_x complex_e)
                                         (assigned ()
-                                            ,@(map (lambda (x_c x_t) `(set! ,x_c ,x_t)) complex_x temp_x)
-                                            ,body_expr))))))))))
+                                            ,(make-begin
+                                                `(,@(map (lambda (x_c x_t) `(set! ,x_c ,x_t)) complex_x temp_x)
+                                                ,body_expr))))))))))))
     (define (Expr expr)
         (match expr
             [(letrec ([,uvar* ,[Expr -> bind_expr*]] ...)

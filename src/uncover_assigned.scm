@@ -12,15 +12,16 @@
             [(,let_form 
                 ([,uvar* ,[Expr -> assigned_vars* bind_expr*]] ...)
                 ,[Expr -> assigned_vars body_expr])
-                (guard (or (eq? let_form 'let) (eq? let_form 'letrec))
-                    (let ([assigned_vars (union assigned_vars (apply union assigned_vars*))])
-                        (values (difference assigned_vars uvar*)
-                            `(,let_form ([,uvar* ,bind_expr*] ...)
-                                (assigned ,(intersection assigned_vars uvar*)
-                                    ,body_expr)))))]
-            [(set! ,uvar ,[Expr -> assigned_vars expr])
+                (guard (or (eq? let_form 'let) (eq? let_form 'letrec)))
+                (let ([assigned_vars (union assigned_vars (apply union assigned_vars*))])
+                    (values 
+                        (difference assigned_vars uvar*)
+                        `(,let_form ([,uvar* ,bind_expr*] ...)
+                            (assigned ,(intersection assigned_vars uvar*)
+                                ,body_expr))))]
+            [(set! ,uvar ,[Expr -> assigned_vars sub_expr])
                 (values (union assigned_vars `(,uvar))
-                    `(set! ,uvar ,expr))]
+                    `(set! ,uvar ,sub_expr))]
             [(,[Expr -> assigned_vars* expr*] ...)
                 (values (apply union assigned_vars*) `(,@expr*))]
             [,x (values '() x)]))

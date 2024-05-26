@@ -16,7 +16,7 @@
             (values temp_uvars assoc_list new_uvars)))
     (define (handle_assigned assigned_vars temp_uvars)
         (map (lambda (x t)
-                `(x (cons ,t (void))))
+                `(,x (cons ,t (void))))
             assigned_vars temp_uvars))
     (define (Expr assigned_vars)
         (lambda (expr)
@@ -26,7 +26,7 @@
                         ,[(Expr (union assigned_vars assigned_var*)) -> body]))
                     (let-values
                         ([(temp_uvars assoc_list new_uvar*) (replace_assigned_vars assigned_var* uvar*)])
-                        `(lambda ,uvar*
+                        `(lambda ,new_uvar*
                             (let ,(handle_assigned assigned_var* temp_uvars)
                                 ,body)))]
                 [(,let_form ([,uvar* ,bind_expr*] ...)
