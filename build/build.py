@@ -41,6 +41,10 @@ f"""
 
 (compiler-passes '(
   verify-scheme
+  convert-complex-datum
+  uncover-assigned
+  purify-letrec
+  convert-assignments
   optimize-direct-call
   remove-anonymous-lambda
   sanitize-binding-forms
