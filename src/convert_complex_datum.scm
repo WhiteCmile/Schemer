@@ -16,33 +16,41 @@
                     (let-values 
                         ([(car_new_vars car_values car_set_exprs car_expr) (flatten_pair (car pair))]
                         [(cdr_new_vars cdr_values cdr_set_exprs cdr_expr) (flatten_pair (cdr pair))])
-                        (values (append car_new_vars cdr_new_vars)
-                                (append car_values cdr_values)
-                                (append car_set_exprs cdr_set_exprs)
-                                `(cons ,car_expr ,cdr_expr)))]))
+                        (let ([new_vars (append car_new_vars cdr_new_vars)]
+                            [new_values (append car_values cdr_values)]
+                            [new_set_exprs (append car_set_exprs cdr_set_exprs)])
+                            (values '() '() '() 
+                                (if (null? new_vars)
+                                    `(cons ,car_expr ,cdr_expr)
+                                    `(let ,(map list new_vars new_values)
+                                        ,(make-begin 
+                                            `(,@new_set_exprs (cons ,car_expr ,cdr_expr))))))))]))
         (define (set_vector vec vec_name)
             (let loop ([vec vec] [i 0])
                 (match vec
-                    [() (values '() '() '())]
+                    [() (values '() '() '() '())]
                     [(,elem . ,rest)
                         (let-values
-                            ([(rest_new_vars rest_values rest_set_exprs) 
+                            ([(rest_new_vars rest_values rest_set_exprs sub_set_exprs) 
                                 (loop rest (add1 i))]
                             [(elem_new_vars elem_values elem_set_exprs elem_expr) 
                                 (handle_quoted_data elem)])
                             (values
                                 (append elem_new_vars rest_new_vars)
                                 (append elem_values rest_values)
-                                (cons `(vector-set! ,vec_name (quote ,i) ,elem_expr)
-                                    (append rest_set_exprs elem_set_exprs))))])))
+                                (cons `(vector-set! ,vec_name (quote ,i) ,elem_expr) rest_set_exprs)
+                                (append elem_set_exprs sub_set_exprs)))])))
         (define (handle_vector vec)
             (let ([new_var (unique-name 'vec)])
                 (let-values 
-                    ([(new_vars datum_values set_exprs) (set_vector vec new_var)])
-                    (values (append new_vars `(,new_var))
-                            (append datum_values `((make-vector (quote ,(length vec)))))
-                            set_exprs
-                            new_var))))
+                    ([(new_vars datum_values cur_set_exprs sub_set_exprs) (set_vector vec new_var)])
+                    (values `(,new_var)
+                            `((make-vector (quote ,(length vec))))
+                            cur_set_exprs
+                            (if (null? new_vars)
+                                new_var
+                                `(let ,(map list new_vars datum_values)
+                                    ,(make-begin `(,@sub_set_exprs new_var))))))))
         (match data
             [#(,elem* ...) (handle_vector elem*)]
             [,pair (guard (pair? pair)) (flatten_pair pair)]
