@@ -1,10 +1,3 @@
-; Check whether x is an immediate or not
-(define (immediate? x)
-    (or (eq? '#f x)
-        (eq? '#t x)
-        (eq? '() x)
-        (fixnum? x)))
-
 (define (convert-complex-datum program)
     ; All helpers return four values:
     ;   1. New variables defined to bind complex datum

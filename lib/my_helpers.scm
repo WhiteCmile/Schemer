@@ -175,3 +175,10 @@
         )
     )
 )
+
+; Check whether x is an immediate or not
+(define (immediate? x)
+    (or (eq? '#f x)
+        (eq? '#t x)
+        (eq? '() x)
+        (fixnum? x)))
