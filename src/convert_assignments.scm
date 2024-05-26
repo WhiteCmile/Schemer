@@ -19,8 +19,8 @@
                 `(x (cons ,t (void))))
             assigned_vars temp_uvars))
     (define (Expr assigned_vars)
-        (lambda (program)
-            (match program
+        (lambda (expr)
+            (match expr
                 [(lambda ,uvar* 
                     (assigned ,assigned_var*
                         ,[(Expr (union assigned_vars assigned_var*)) -> body]))
@@ -31,7 +31,8 @@
                                 ,body)))]
                 [(,let_form ([,uvar* ,bind_expr*] ...)
                     (assigned ,assigned_var*
-                        ,[(Expr (union assigned_vars assigned_var*)) -> body])) (guard (eq? let_form 'let) (eq? let_form 'letrec))
+                        ,[(Expr (union assigned_vars assigned_var*)) -> body])) 
+                    (guard (or (eq? let_form 'let) (eq? let_form 'letrec)))
                     (let-values
                         ([(temp_uvars assoc_list new_uvar*) (replace_assigned_vars assigned_var* uvar*)])
                         (let ([bind_expr* (map (Expr (union assigned_vars assigned_var*)) bind_expr*)])
