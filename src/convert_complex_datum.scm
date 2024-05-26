@@ -46,7 +46,7 @@
         (match data
             [#(,elem* ...) (handle_vector elem*)]
             [,pair (guard (pair? pair)) (flatten_pair pair)]
-            [,x (values '() '() '() x)]))
+            [,x (values '() '() '() `(quote ,x))]))
     ; Handle expressions
     (define (Expr expr)
         (match expr
@@ -54,7 +54,6 @@
                 (let-values 
                     ([(new_vars datum_values set_exprs data_expr) (handle_quoted_data data)])
                     (cond 
-                        [(immediate? data) (values '() '() '() `(quote ,data_expr))]
                         [(pair? data) 
                             (let ([new_var (unique-name 'pair)])
                                 (values (append new_vars `(,new_var))
