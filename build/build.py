@@ -40,7 +40,7 @@ f"""
             [,x (error who "invalid Program ~s" x)])))
 
 (compiler-passes '(
-  parse_scheme
+  parse-scheme
   convert-complex-datum
   uncover-assigned
   purify-letrec
