@@ -59,7 +59,7 @@
 (define-who (handle_if env expr)
     (match expr
         [(if ,[(Expr env) -> pred] ,[(Expr env) -> e])
-            `(if ,pred ,e)]
+            `(if ,pred ,e (void))]
         [(if ,[(Expr env) -> pred] ,[(Expr env) -> conseq] ,[(Expr env) -> alt])
             `(if ,pred ,conseq ,alt)]
         [,x (error who "Invalid if syntax ~s\n" x)]))
@@ -72,7 +72,7 @@
 
 (define-who (handle_lambda env expr)
     (match expr
-        [(lambda ,var* ,e ,e* ...)
+        [(lambda ,var* ,e ,e* ...) (guard (set? var*))
             (let-values
                 ([(uvars new_env) (make_new_env env var*)])
                 `(lambda ,uvars ,((Expr new_env) (make-begin `(,e ,@e*)))))]
@@ -81,7 +81,7 @@
 (define-who (handle_let env expr)
     (match expr
         [(let ([,var* ,[(Expr env) -> e*]] ...)
-            ,body_e ,body_e* ...)
+            ,body_e ,body_e* ...) (guard (set? var*))
             (let-values
                 ([(uvars new_env) (make_new_env env var*)])
                 `(let ,(map list uvars e*)
@@ -90,7 +90,7 @@
 
 (define-who (handle_letrec env expr)
     (match expr
-        [(letrec ([,var* ,e*] ...) ,body_e ,body_e* ...)
+        [(letrec ([,var* ,e*] ...) ,body_e ,body_e* ...) (guard (set? var*))
             (let-values
                 ([(uvars new_env) (make_new_env env var*)])
                 `(letrec ,(map list uvars (map (Expr new_env) e*))
@@ -190,12 +190,11 @@
 ;   4. convert unquoted constants into quoted constants;
 (define-who (Expr env)
     (lambda (expr)
-        ; (printf "Expr: ~s\n" expr)
         (match expr
             [(,proc ,e* ...) (guard (and (not (list? proc)) 
                                     (assoc proc (cdr env))))
                 ((cdr (assoc proc (cdr env))) env `(,proc ,@e*))]
-            [(,[(Expr env) -> e] [(Expr env) -> e*] ...) `(,e ,@e*)]
+            [(,[(Expr env) -> e] ,[(Expr env) -> e*] ...) `(,e ,@e*)]
             [,constant (guard (immediate? constant))
                 (handle_constant constant)]
             [,var 
@@ -203,6 +202,6 @@
                     (let ([var_uvar_pair (assoc var (car env))])
                         (if var_uvar_pair
                             (cdr var_uvar_pair)
-                            var))
+                            (error who "Unbound variable ~s\n" var)))
                     (error who "Unbound variable ~s\n" var))]
             [,x (error who "Invalid syntax ~s\n" x)])))
