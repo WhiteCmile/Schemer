@@ -26,6 +26,10 @@
 (load "src/remove_anonymous_lambda.scm")
 (load "src/sanitize_binding_forms.scm")
 (load "src/optimize_known_call.scm")
+(load "src/convert_complex_datum.scm")
+(load "src/uncover_assigned.scm")
+(load "src/purify_letrec.scm")
+(load "src/convert_assignments.scm")
 
 (define generate-x86-64
     (lambda (program)
