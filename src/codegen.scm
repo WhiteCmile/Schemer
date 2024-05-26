@@ -30,6 +30,7 @@
 (load "src/uncover_assigned.scm")
 (load "src/purify_letrec.scm")
 (load "src/convert_assignments.scm")
+(load "src/parse_scheme.scm")
 
 (define generate-x86-64
     (lambda (program)
